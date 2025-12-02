@@ -1,6 +1,70 @@
-from fastapi import APIRouter
-
+from fastapi import APIRouter, Depends, HTTPException, status
+from dependancy import get_superuser
+from database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from schemas.users import UserCreate, UserLogin
+from models import Users
+from sqlalchemy.future import select
+from security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+)
 
 router = APIRouter(prefix="/auth", tags=["Users"])
 
 
+@router.post("/register", status_code=status.HTTP_200_OK) 
+async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+
+    result = await db.execute(
+        select(Users).where(Users.phone_number == user_in.phone_number)
+    )
+    user = result.scalars().first()
+    if user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this phone number already exists",
+        )
+    hashed_password = await hash_password(user_in.password)
+    new_user = Users(
+        first_name=user_in.first_name,
+        last_name=user_in.last_name,
+        phone_number=user_in.phone_number,
+        date_of_birth=user_in.date_of_birth,
+        gender=user_in.gender,
+        hash_password=hashed_password,
+    )
+
+    db.add(new_user)
+    await db.commit()
+
+    return {"message": "Admin registration endpoint"}
+
+
+@router.post("/login", status_code=status.HTTP_200_OK) 
+async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Users).where(Users.phone_number == user_in.phone_number)
+    )
+    user = result.scalars().first()
+    
+    if user and await verify_password(user_in.password, user.hashed_password):
+        token = create_access_token(
+            {"phone_number": user.phone_number, "role": user.role}
+        )
+        refresh_token = create_refresh_token(
+            {"phone_number": user.phone_number, "role": user.role}
+        )
+        return {
+            "role": user.role,
+            "access_token": token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+        }
+
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid phone number or password",
+    )
