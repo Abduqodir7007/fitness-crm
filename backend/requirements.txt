@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+asyncpg
+bcrypt==4.0.1
+python-jose[cryptography]
+pydantic
+pydantic-settings
+email-validator
+fastapi-mail
+passlib
+python-multipart
+aiofiles #  remove if you do not use file uploads
+alembic
+psycopg2-binary 
