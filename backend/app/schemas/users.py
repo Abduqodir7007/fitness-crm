@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
-
+from datetime import date
 
 class Gender(str, Enum):
     MALE = "male"
@@ -22,7 +22,8 @@ class UserCreate(BaseModel):
     last_name: str
     phone_number: str
     password: str
-    date_of_birth: str 
+    date_of_birth: date 
+    is_superuser: bool | None = False
     gender: Gender | None = Gender.MALE
     role: UserRole | None = UserRole.CLIENT
 

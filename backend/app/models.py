@@ -1,8 +1,9 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer, DECIMAL
+from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from database import Base
+from .database import Base
+from datetime import datetime
 
 
 class Users(Base):
@@ -16,7 +17,7 @@ class Users(Base):
     gender = Column(String(10), nullable=False)
     hashed_password = Column(String, nullable=False)
 
-    created_at = Column(Date, nullable=False)
+    created_at = Column(Date, nullable=False, default=datetime.utcnow())
     date_of_birth = Column(Date, nullable=False)
 
     is_active = Column(Boolean, default=True)

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from dependancy import get_superuser
-from database import get_db
+from ..dependancy import get_superuser
+from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.users import UserCreate, UserLogin
-from models import Users
+from ..schemas.users import UserCreate, UserLogin
+from ..models import Users
 from sqlalchemy.future import select
-from security import (
+from ..security import (
     hash_password,
     verify_password,
     create_access_token,
@@ -34,7 +34,9 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         phone_number=user_in.phone_number,
         date_of_birth=user_in.date_of_birth,
         gender=user_in.gender,
-        hash_password=hashed_password,
+        hashed_password=hashed_password,
+        is_superuser=user_in.is_superuser,
+        role=user_in.role,
     )
 
     db.add(new_user)

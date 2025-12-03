@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from dependancy import get_superuser
-from database import get_db
+from ..dependancy import get_superuser
+from ..database import get_db
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models import SubscriptionPlans
-from schemas.admin import SubscriptionPlanCreate
+from ..models import SubscriptionPlans
+from ..schemas.admin import SubscriptionPlanCreate
 
-router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=Depends(get_superuser))
+router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(get_superuser)])
 
 
 @router.post("/subscription_plans", status_code=status.HTTP_201_CREATED)
