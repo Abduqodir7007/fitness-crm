@@ -1,4 +1,5 @@
 import axios from "axios";
+import { authAPI } from "./auth";
 
 const client = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
@@ -19,14 +20,48 @@ client.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Add response interceptor for error handling
+// Add response interceptor for error handling and token refresh
 client.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If 401 and we haven't already tried to refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                const refreshToken = localStorage.getItem("refresh_token");
+                if (refreshToken) {
+                    // Call refresh endpoint to get new access token
+                    const newTokens = await authAPI.refreshToken(refreshToken);
+
+                    if (newTokens.access_token) {
+                        localStorage.setItem(
+                            "access_token",
+                            newTokens.access_token
+                        );
+
+                        // Retry original request with new token
+                        originalRequest.headers.Authorization = `Bearer ${newTokens.access_token}`;
+                        return client(originalRequest);
+                    }
+                }
+            } catch (refreshError) {
+                console.error("Token refresh failed:", refreshError);
+                // Refresh failed, clear auth and redirect to login
+                authAPI.logout();
+                window.location.href = "/login";
+                return Promise.reject(refreshError);
+            }
+        }
+
+        // If still 401 after refresh attempt or no refresh token, clear and redirect
         if (error.response?.status === 401) {
-            localStorage.removeItem("access_token");
+            authAPI.logout();
             window.location.href = "/login";
         }
+
         return Promise.reject(error);
     }
 );

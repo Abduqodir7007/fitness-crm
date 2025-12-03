@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { authAPI } from "../api/auth";
 
 export default function LoginPage() {
-    const [login, setLogin] = useState("");
+    const [phone_number, setPhoneNumber] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -15,9 +15,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Extract email from login (could be phone or email)
-            // For now, we'll send as-is to the backend
-            await authAPI.login(login, password);
+            await authAPI.login(phone_number, password);
             navigate("/dashboard");
         } catch (err) {
             setError(
@@ -68,9 +66,9 @@ export default function LoginPage() {
                             Login (telefon/username)
                         </label>
                         <input
-                            type="text"
-                            value={login}
-                            onChange={(e) => setLogin(e.target.value)}
+                            type="tel"
+                            value={phone_number}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
                             placeholder="+998 90 123 45 67"
                             className="w-full px-4 py-3 border rounded-lg outline-none transition focus:ring-2 focus:border-transparent"
                             style={{

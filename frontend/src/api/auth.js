@@ -1,46 +1,92 @@
 import client from "./client";
 
 export const authAPI = {
-    login: async (login, password) => {
+    login: async (phone_number, password) => {
         try {
-            // For now, accept any login/password and create a mock token
-            if (login && password) {
-                const mockToken = btoa(`${login}:${password}:${Date.now()}`);
-                localStorage.setItem("access_token", mockToken);
-                localStorage.setItem("user_login", login);
-                return { access_token: mockToken, user: login };
+            const response = await client.post("/auth/login", {
+                phone_number,
+                password,
+            });
+
+            if (response.data.access_token) {
+                localStorage.setItem(
+                    "access_token",
+                    response.data.access_token
+                );
+                localStorage.setItem("user_role", response.data.role);
+                localStorage.setItem("token_type", response.data.token_type);
+                if (response.data.refresh_token) {
+                    localStorage.setItem(
+                        "refresh_token",
+                        response.data.refresh_token
+                    );
+                }
             }
-            throw new Error("Login and password required");
+
+            return response.data;
         } catch (error) {
             console.error("Login error:", error);
             throw error;
         }
     },
 
-    signup: async (email, password, name) => {
+    signup: async (
+        first_name,
+        last_name,
+        phone_number,
+        password,
+        date_of_birth,
+        gender
+    ) => {
         try {
-            if (email && password && name) {
-                const mockToken = btoa(`${email}:${password}:${Date.now()}`);
-                localStorage.setItem("access_token", mockToken);
-                localStorage.setItem("user_login", email);
-                return { access_token: mockToken, user: email };
-            }
-            throw new Error("All fields required");
+            const response = await client.post("/auth/register", {
+                first_name,
+                last_name,
+                phone_number,
+                password,
+                date_of_birth,
+                gender,
+            });
+            return response.data;
         } catch (error) {
             console.error("Signup error:", error);
             throw error;
         }
+    },
+
     logout: () => {
         localStorage.removeItem("access_token");
-        localStorage.removeItem("user_login");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("token_type");
     },
 
     getCurrentUser: async () => {
         try {
-            const userLogin = localStorage.getItem("user_login");
-            return { user: userLogin || "Admin" };
+            const response = await client.get("/auth/me");
+            return response.data;
         } catch (error) {
             console.error("Get current user error:", error);
+            throw error;
+        }
+    },
+
+    refreshToken: async (refresh_token) => {
+        try {
+            const response = await client.post("/auth/refresh", {
+                token: refresh_token,
+            });
+
+            if (response.data.access_token) {
+                localStorage.setItem(
+                    "access_token",
+                    response.data.access_token
+                );
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error("Refresh token error:", error);
             throw error;
         }
     },

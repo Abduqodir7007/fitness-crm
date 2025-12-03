@@ -45,7 +45,7 @@ export const usersAPI = {
 
     delete: async (userId) => {
         try {
-            const response = await client.delete(`/users/${userId}`);
+            const response = await client.delete(`/users/delete/${userId}`);
             return response.data;
         } catch (error) {
             console.error("Delete user error:", error);

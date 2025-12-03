@@ -19,9 +19,15 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     };
 
     return (
-        <div className="h-screen bg-slate-900 text-white w-64 flex flex-col fixed left-0 top-0">
+        <div
+            className="h-screen text-white w-64 flex flex-col fixed left-0 top-0"
+            style={{ backgroundColor: "#0f1729" }}
+        >
             {/* Logo Section */}
-            <div className="p-6 border-b border-slate-700">
+            <div
+                className="p-6 border-b"
+                style={{ borderColor: "rgba(255,255,255,0.1)" }}
+            >
                 <div className="flex items-center gap-3 mb-2">
                     <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -42,8 +48,10 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                         </svg>
                     </div>
                     <div>
-                        <h1 className="font-bold text-lg">Fitness CRM</h1>
-                        <p className="text-xs text-slate-400">Pro Version</p>
+                        <h1 className="font-bold text-lg text-white">
+                            Fitness CRM
+                        </h1>
+                        <p className="text-xs text-gray-400">Pro Version</p>
                     </div>
                 </div>
             </div>
@@ -54,28 +62,37 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                     <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left font-medium text-white ${
                             activeTab === item.id
-                                ? "bg-slate-700 border-l-4"
-                                : "text-slate-300 hover:bg-slate-800"
+                                ? "border-l-4"
+                                : "hover:opacity-80"
                         }`}
-                        style={
-                            activeTab === item.id
-                                ? { borderLeftColor: "#f0453f" }
-                                : {}
-                        }
+                        style={{
+                            backgroundColor:
+                                activeTab === item.id
+                                    ? "rgba(240, 69, 63, 0.1)"
+                                    : "transparent",
+                            borderLeftColor:
+                                activeTab === item.id
+                                    ? "#f0453f"
+                                    : "transparent",
+                        }}
                     >
                         <span className="text-xl">{item.icon}</span>
-                        <span className="font-medium">{item.label}</span>
+                        <span>{item.label}</span>
                     </button>
                 ))}
             </nav>
 
             {/* Logout Button */}
-            <div className="p-6 border-t border-slate-700">
+            <div
+                className="p-6 border-t"
+                style={{ borderColor: "rgba(255,255,255,0.1)" }}
+            >
                 <button
                     onClick={handleLogout}
-                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition"
+                    className="w-full text-white font-medium py-2 px-4 rounded-lg transition hover:opacity-80"
+                    style={{ backgroundColor: "rgba(240, 69, 63, 0.8)" }}
                 >
                     Chiqish
                 </button>

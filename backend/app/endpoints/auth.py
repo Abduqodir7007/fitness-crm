@@ -10,12 +10,12 @@ from ..security import (
     verify_password,
     create_access_token,
     create_refresh_token,
+    verify_token,
 )
 
 router = APIRouter(prefix="/auth", tags=["Users"])
 
-
-@router.post("/register", status_code=status.HTTP_200_OK) 
+@router.post("/register", status_code=status.HTTP_200_OK)
 async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(
@@ -42,21 +42,21 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     db.add(new_user)
     await db.commit()
 
-    return {"message": "Admin registration endpoint"}
+    return {"message": "User registered successfully"}
 
 
-@router.post("/login", status_code=status.HTTP_200_OK) 
+@router.post("/login", status_code=status.HTTP_200_OK)
 async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number)
     )
     user = result.scalars().first()
-    
+
     if user and await verify_password(user_in.password, user.hashed_password):
-        token = create_access_token(
+        token = await create_access_token(
             {"phone_number": user.phone_number, "role": user.role}
         )
-        refresh_token = create_refresh_token(
+        refresh_token = await create_refresh_token(
             {"phone_number": user.phone_number, "role": user.role}
         )
         return {
@@ -70,3 +70,9 @@ async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid phone number or password",
     )
+
+
+@router.post("/refresh", status_code=status.HTTP_200_OK)
+async def get_new_access_token(token: str):
+    return await verify_token(token)
+
