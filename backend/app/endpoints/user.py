@@ -6,12 +6,13 @@ from fastapi import (
     status,
     WebSocket,
     WebSocketDisconnect,
+    Query,
 )
 from ..dependancy import get_superuser
 from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas.users import UserResponse
-from ..models import Users
+from ..models import Users, Subscriptions
 from sqlalchemy.future import select
 from ..websocket import manager
 from ..security import (
@@ -26,8 +27,28 @@ router = APIRouter(prefix="/users", tags=["User Management"])
 
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=list[UserResponse])
-async def get_all_users(db: AsyncSession = Depends(get_db)):
+async def get_all_users(
+    q: str = Query(None),
+    active_sub: bool = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+
     result = await db.execute(select(Users))
+
+    if active_sub:  # active_sub should be boolean value
+        result = await db.execute(
+            select(Users)
+            .join(Users.subscriptions)
+            .where(Subscriptions.is_active == active_sub)
+        )
+
+    if q:
+        result = await db.execute(
+            select(Users).where(
+                (Users.first_name.ilike(f"%{q}%")) | (Users.last_name.ilike(f"%{q}%"))
+            )
+        )
+
     users = result.scalars().all()
     return users
 

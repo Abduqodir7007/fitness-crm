@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer
+from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -17,14 +17,14 @@ class Users(Base):
     gender = Column(String(10), nullable=False)
     hashed_password = Column(String, nullable=False)
 
-    created_at = Column(Date, nullable=False, default=datetime.utcnow())
+    created_at = Column(Date, default=datetime.utcnow())
     date_of_birth = Column(Date, nullable=False)
 
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
 
     subscriptions = relationship("Subscriptions", back_populates="user")
-    
+    attendances = relationship("Attendance", back_populates="user")
 
 
 class SubscriptionPlans(Base):
@@ -32,10 +32,10 @@ class SubscriptionPlans(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(50), nullable=False)
-    
+
     price = Column(Integer, nullable=False)
     duration_days = Column(Integer, nullable=False)
-    
+
     is_active = Column(Boolean, default=True)
 
     subscriptions = relationship("Subscriptions", back_populates="plan")
@@ -45,17 +45,27 @@ class Subscriptions(Base):
     __tablename__ = "subscription"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     plan_id = Column(
         UUID(as_uuid=True), ForeignKey("subscription_plan.id"), nullable=False
     )
-    
+
     end_date = Column(Date, nullable=False)
     start_date = Column(Date, nullable=False)
-    
+
     is_active = Column(Boolean, default=True)
-    
-    status = Column(String(15), nullable=False)
 
     user = relationship("Users", back_populates="subscriptions")
     plan = relationship("SubscriptionPlans", back_populates="subscriptions")
+
+
+class Attendance(Base):
+    __tablename__ = "attendance"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+
+    date = Column(Date, default=func.current_date(), nullable=False)  # change later
+
+    user = relationship("Users", back_populates="attendances")
