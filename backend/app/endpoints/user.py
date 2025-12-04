@@ -26,7 +26,7 @@ from ..security import (
 router = APIRouter(prefix="/users", tags=["User Management"])
 
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK, response_model=list[UserResponse])
 async def get_all_users(
     q: str = Query(None),
     active_sub: bool = Query(None),
@@ -42,12 +42,14 @@ async def get_all_users(
 
     if q:
         query = query.where(
-            (Users.first_name.ilike(f"%{q}%")) | (Users.last_name.ilike(f"%{q}%"))
+            (Users.first_name.ilike(f"%{q}%"))
+            | (Users.last_name.ilike(f"%{q}%"))
+            | (Users.phone_number.ilike(f"%{q}%"))
         )
 
     users = (await db.execute(query)).scalars().all()
-    response = [{**UserResponse.model_validate(user).model_dump()} for user in users]
-    return response
+
+    return users
 
 
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)

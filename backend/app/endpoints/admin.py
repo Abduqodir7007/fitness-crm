@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from ..dependancy import get_superuser
 from ..database import get_db
-from sqlalchemy import select
+from sqlalchemy import select, func
+from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import SubscriptionPlans
-from ..schemas.admin import SubscriptionPlanCreate
+from ..models import SubscriptionPlans, Subscriptions
+from ..schemas.admin import SubscriptionPlanCreate, SubscriptionCreate
 
 router = APIRouter(
     prefix="/admin", tags=["Admin"], dependencies=[Depends(get_superuser)]
@@ -18,7 +19,7 @@ async def create_subscription_plan(
 ):
 
     new_plan = SubscriptionPlans(
-        name=subscription.name,
+        type=subscription.name,
         price=subscription.price,
         duration_days=subscription.duration_days,
     )
@@ -26,6 +27,17 @@ async def create_subscription_plan(
     await db.commit()
     await db.refresh(new_plan)
     return new_plan
+
+
+@router.get("/subscription/pie-chart", status_code=status.HTTP_200_OK)
+async def get_subscription_pie_chart(
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(func.count(Subscriptions.id)).where(Subscriptions.is_active == True)
+    )
+    total_active_subscriptions = result.scalar()
+    # TO DO
 
 
 @router.get("/subscription_plans")
@@ -72,3 +84,20 @@ async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_
     await db.delete(plan)
     await db.commit()
     return {"message": "Subscription plan deleted successfully"}
+
+
+@router.post("/subscriptions/assign", status_code=status.HTTP_200_OK)
+async def subscriptions_assign(
+    subscription: SubscriptionCreate, db: AsyncSession = Depends(get_db)
+):
+
+    new_subscription = Subscriptions(
+        user_id=subscription.user_id,
+        plan_id=subscription.plan_id,
+        payment_method=subscription.payment_method,
+        start_date=date.today(),
+        end_date=date.today() + timedelta(days=30),
+    )
+    db.add(new_subscription)
+    await db.commit()
+    return {"message": "Subscription assigned successfully"}

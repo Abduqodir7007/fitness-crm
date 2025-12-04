@@ -31,7 +31,7 @@ class SubscriptionPlans(Base):
     __tablename__ = "subscription_plan"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String(50), nullable=False)
+    type = Column(String(50), nullable=False)
 
     price = Column(Integer, nullable=False)
     duration_days = Column(Integer, nullable=False)
@@ -50,7 +50,7 @@ class Subscriptions(Base):
     plan_id = Column(
         UUID(as_uuid=True), ForeignKey("subscription_plan.id"), nullable=False
     )
-
+    payment_method = Column(String(50), nullable=False)
     end_date = Column(Date, nullable=False)
     start_date = Column(Date, nullable=False)
 
