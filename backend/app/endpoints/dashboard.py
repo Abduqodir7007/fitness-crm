@@ -10,7 +10,9 @@ from sqlalchemy import func
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.get("/user-stats/", status_code=status.HTTP_200_OK) # number of active users, number of trainers, today's attendance
+@router.get(
+    "/user-stats", status_code=status.HTTP_200_OK
+)  # number of active users, number of trainers, today's attendance
 async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
 ):
@@ -44,7 +46,6 @@ async def get_dashboard_stats(
             "today_attendance": today_attendance,
         }
     )
-
     return response
 
 
@@ -59,11 +60,9 @@ async def get_subscription_stats(
     )
     total_active_subscriptions = result1.scalar()
 
-
     response.append(
         {
             "total_active_subscriptions": total_active_subscriptions,
-            "total_subscription_plans": total_subscription_plans,
         }
     )
 

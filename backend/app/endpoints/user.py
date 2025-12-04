@@ -26,31 +26,28 @@ from ..security import (
 router = APIRouter(prefix="/users", tags=["User Management"])
 
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=list[UserResponse])
+@router.get("/", status_code=status.HTTP_200_OK)
 async def get_all_users(
     q: str = Query(None),
     active_sub: bool = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
 
-    result = await db.execute(select(Users))
+    query = select(Users)
 
     if active_sub:  # active_sub should be boolean value
-        result = await db.execute(
-            select(Users)
-            .join(Users.subscriptions)
-            .where(Subscriptions.is_active == active_sub)
+        query = query.join(Users.subscriptions).where(
+            Subscriptions.is_active == active_sub
         )
 
     if q:
-        result = await db.execute(
-            select(Users).where(
-                (Users.first_name.ilike(f"%{q}%")) | (Users.last_name.ilike(f"%{q}%"))
-            )
+        query = query.where(
+            (Users.first_name.ilike(f"%{q}%")) | (Users.last_name.ilike(f"%{q}%"))
         )
 
-    users = result.scalars().all()
-    return users
+    users = (await db.execute(query)).scalars().all()
+    response = [{**UserResponse.model_validate(user).model_dump()} for user in users]
+    return response
 
 
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
@@ -68,6 +65,31 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
     return {"message": "User deleted successfully"}
 
 
+@router.websocket("/ws/trainers")
+async def websocket_trainers_endpoint(
+    websocket: WebSocket, db: AsyncSession = Depends(get_db)
+):
+    await manager.connect(websocket)
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            if message.get("type") == "trainers":
+                query = select(Users).where(Users.role == "trainer")
+                result = await db.execute(query)
+                trainers = result.scalars().all()
+
+                trainers_data = [
+                    UserResponse.model_validate(trainer).model_dump()
+                    for trainer in trainers
+                ]
+
+                await websocket.send_json({"type": "trainers", "data": trainers_data})
+    except WebSocketDisconnect:
+        await manager.disconnect(websocket)
+
+
 @router.websocket("/ws/")
 async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
     await manager.connect(websocket)
@@ -76,7 +98,14 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
             data = await websocket.receive_text()
             message = json.loads(data)
             if message.get("type") == "users":
-                users = await get_all_users(db)
-                await manager.broadcast({"type": "users", "data": users})
+                query = select(Users)
+                result = await db.execute(query)
+                users = result.scalars().all()
+
+                users_data = [
+                    UserResponse.model_validate(user).model_dump() for user in users
+                ]
+
+                await manager.broadcast({"type": "users", "data": users_data})
     except WebSocketDisconnect:
         await manager.disconnect(websocket)

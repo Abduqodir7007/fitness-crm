@@ -13,8 +13,8 @@ class Users(Base):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     phone_number = Column(String(20), unique=True, nullable=False)
-    role = Column(String(20), nullable=False, default="client")
-    gender = Column(String(10), nullable=False)
+    role = Column(String(20), nullable=True, default="client")
+    gender = Column(String(10), nullable=True, default="male")
     hashed_password = Column(String, nullable=False)
 
     created_at = Column(Date, default=datetime.utcnow())
