@@ -112,6 +112,5 @@ async def get_ended_subscriptions(db: AsyncSession = Depends(get_db)):
                 "status": status,
             }
         )
-        print(days_left)
 
     return response

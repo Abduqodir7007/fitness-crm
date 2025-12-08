@@ -6,6 +6,8 @@ from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import SubscriptionPlans, Subscriptions
 from ..schemas.admin import SubscriptionPlanCreate, SubscriptionCreate
+from ..utils import is_subscription_active
+
 
 router = APIRouter(
     prefix="/admin", tags=["Admin"], dependencies=[Depends(get_superuser)]
@@ -79,7 +81,14 @@ async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_
 async def subscriptions_assign(
     subscription: SubscriptionCreate, db: AsyncSession = Depends(get_db)
 ):
-
+    
+    is_active = await is_subscription_active(subscription.user_id, db)
+    if is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already has an active subscription",
+        )
+        
     new_subscription = Subscriptions(
         user_id=subscription.user_id,
         plan_id=subscription.plan_id,
@@ -90,4 +99,3 @@ async def subscriptions_assign(
     db.add(new_subscription)
     await db.commit()
     return {"message": "Subscription assigned successfully"}
-

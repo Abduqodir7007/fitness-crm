@@ -1,4 +1,12 @@
 import json
+from ..database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from ..schemas.users import UserResponse
+from ..models import Users, Subscriptions
+from sqlalchemy.future import select
+from ..websocket import manager
+from ..utils import is_subscription_active
+from sqlalchemy import or_, and_
 from fastapi import (
     APIRouter,
     Depends,
@@ -7,20 +15,6 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
     Query,
-)
-from ..dependancy import get_superuser
-from ..database import get_db
-from sqlalchemy.ext.asyncio import AsyncSession
-from ..schemas.users import UserResponse
-from ..models import Users, Subscriptions
-from sqlalchemy.future import select
-from ..websocket import manager
-from ..security import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    create_refresh_token,
-    verify_token,
 )
 
 router = APIRouter(prefix="/users", tags=["User Management"])
@@ -54,7 +48,14 @@ async def get_all_users(
 
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
 async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
-
+    
+    is_active = await is_subscription_active(user_id, db)
+    if is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete user with active subscription",
+        )
+        
     result = await db.execute(select(Users).where(Users.id == user_id))
     user = result.scalars().first()
     if not user:
@@ -100,7 +101,7 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
             data = await websocket.receive_text()
             message = json.loads(data)
             if message.get("type") == "users":
-                query = select(Users)
+                query = select(Users).where(and_(Users.role != "admin", Users.role != "trainer"))
                 result = await db.execute(query)
                 users = result.scalars().all()
 
