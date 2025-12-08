@@ -36,7 +36,8 @@ export const authAPI = {
         phone_number,
         password,
         date_of_birth,
-        gender
+        gender,
+        role = "client"
     ) => {
         try {
             const response = await client.post("/auth/register", {
@@ -46,6 +47,7 @@ export const authAPI = {
                 password,
                 date_of_birth,
                 gender,
+                role,
             });
             return response.data;
         } catch (error) {

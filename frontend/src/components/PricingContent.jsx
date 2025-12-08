@@ -1,38 +1,71 @@
+import { useState, useEffect } from "react";
+import AddPricingModal from "./AddPricingModal";
+import { pricingAPI } from "../api/pricing";
+
 export default function PricingContent() {
-    const pricing = [
-        {
-            id: 1,
-            name: "Standart",
-            price: "150,000",
-            duration: "1 oy",
-            members: 45,
-            status: "Faol",
-        },
-        {
-            id: 2,
-            name: "Premium",
-            price: "300,000",
-            duration: "3 oy",
-            members: 78,
-            status: "Faol",
-        },
-        {
-            id: 3,
-            name: "VIP",
-            price: "500,000",
-            duration: "6 oy",
-            members: 32,
-            status: "Faol",
-        },
-        {
-            id: 4,
-            name: "Oyliq",
-            price: "400,000",
-            duration: "1 yil",
-            members: 25,
-            status: "Faol",
-        },
-    ];
+    const [plans, setPlans] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch pricing plans on component mount
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
+    const fetchPlans = async () => {
+        setIsLoading(true);
+        try {
+            const data = await pricingAPI.getAll();
+            setPlans(data);
+        } catch (err) {
+            console.error("Error fetching plans:", err);
+            setError("Tariflarni yuklashda xato");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAddPlan = async (formData) => {
+        try {
+            await pricingAPI.create(
+                formData.name,
+                formData.price,
+                formData.duration_days
+            );
+            // Refresh plans list
+            await fetchPlans();
+            setIsModalOpen(false);
+        } catch (err) {
+            console.error("Error adding plan:", err);
+            throw err;
+        }
+    };
+
+    const handleDeletePlan = async (planId) => {
+        if (window.confirm("Haqiqatan ham bu tarifni o'chirmoqchisiz?")) {
+            try {
+                await pricingAPI.delete(planId);
+                // Refresh plans list
+                await fetchPlans();
+            } catch (err) {
+                setError("Tarifni o'chirishda xato");
+                console.error("Error deleting plan:", err);
+            }
+        }
+    };
+
+    const formatPrice = (price) => {
+        return price?.toLocaleString("uz-UZ") || "0";
+    };
+
+    const formatDuration = (days) => {
+        if (days === 30) return "1 oy";
+        if (days === 90) return "3 oy";
+        if (days === 180) return "6 oy";
+        if (days === 365) return "1 yil";
+        return `${days} kun`;
+    };
 
     return (
         <div className="space-y-6">
@@ -45,6 +78,7 @@ export default function PricingContent() {
 
             <div className="flex justify-end">
                 <button
+                    onClick={() => setIsModalOpen(true)}
                     className="px-6 py-2 rounded-lg text-white font-semibold transition"
                     style={{ backgroundColor: "#f0453f" }}
                     onMouseEnter={(e) =>
@@ -58,53 +92,83 @@ export default function PricingContent() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pricing.map((plan) => (
-                    <div
-                        key={plan.id}
-                        className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition border-l-4"
-                        style={{ borderLeftColor: "#f0453f" }}
-                    >
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900">
-                                    {plan.name}
-                                </h3>
-                                <p className="text-sm text-gray-600">
-                                    {plan.duration}
-                                </p>
+            {/* Add Pricing Modal */}
+            <AddPricingModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleAddPlan}
+            />
+
+            {/* Error State */}
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    {error}
+                </div>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+                <div className="text-center py-12">
+                    <p className="text-gray-600">Tariflar yuklanmoqda...</p>
+                </div>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && plans.length === 0 && (
+                <div className="text-center py-12 bg-white rounded-lg">
+                    <p className="text-gray-600 text-lg">
+                        Hozircha tarif yo'q. Yangi tarif qo'shishni boshlang.
+                    </p>
+                </div>
+            )}
+
+            {/* Plans Grid */}
+            {!isLoading && plans.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {plans.map((plan) => (
+                        <div
+                            key={plan.id}
+                            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition border-l-4"
+                            style={{ borderLeftColor: "#f0453f" }}
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900">
+                                        {plan.name}
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                        {formatDuration(plan.duration_days)}
+                                    </p>
+                                </div>
+                                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                    {plan.is_active ? "Faol" : "Nofaol"}
+                                </span>
                             </div>
-                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
-                                {plan.status}
-                            </span>
-                        </div>
-                        <div className="space-y-3 mb-4">
-                            <div>
-                                <p className="text-sm text-gray-600">Narx</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {plan.price} so'm
-                                </p>
+                            <div className="space-y-3 mb-4">
+                                <div>
+                                    <p className="text-sm text-gray-600">
+                                        Narx
+                                    </p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {formatPrice(plan.price)} so'm
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-600">
-                                    Faol Mijozlar
-                                </p>
-                                <p className="text-lg font-semibold text-gray-900">
-                                    {plan.members} nafar
-                                </p>
+                            <div className="flex gap-2">
+                                <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition text-sm">
+                                    ✏️ Tahrirlash
+                                </button>
+                                <button
+                                    onClick={() => handleDeletePlan(plan.id)}
+                                    className="flex-1 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-medium transition text-sm"
+                                >
+                                    🗑️ O'chirish
+                                </button>
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                            <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
-                                Tahrirlash
-                            </button>
-                            <button className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition">
-                                Ko'proq
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

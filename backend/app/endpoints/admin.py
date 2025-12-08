@@ -29,17 +29,6 @@ async def create_subscription_plan(
     return new_plan
 
 
-@router.get("/subscription/pie-chart", status_code=status.HTTP_200_OK)
-async def get_subscription_pie_chart(
-    db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(func.count(Subscriptions.id)).where(Subscriptions.is_active == True)
-    )
-    total_active_subscriptions = result.scalar()
-    # TO DO
-
-
 @router.get("/subscription_plans")
 async def get_subscription_plans(
     db: AsyncSession = Depends(get_db),
@@ -101,3 +90,4 @@ async def subscriptions_assign(
     db.add(new_subscription)
     await db.commit()
     return {"message": "Subscription assigned successfully"}
+
