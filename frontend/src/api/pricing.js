@@ -28,7 +28,7 @@ export const pricingAPI = {
     deactivate: async (planId) => {
         try {
             const response = await client.put(
-                `/admin/subscription_plans/${planId}`
+                `/admin/subscription_plans/deactivate/${planId}`
             );
             return response.data;
         } catch (error) {

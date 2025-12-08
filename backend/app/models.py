@@ -23,7 +23,9 @@ class Users(Base):
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
 
-    subscriptions = relationship("Subscriptions", back_populates="user")
+    subscriptions = relationship(
+        "Subscriptions", back_populates="user", cascade="all, delete-orphan"
+    )
     attendances = relationship("Attendance", back_populates="user")
 
 
@@ -38,7 +40,9 @@ class SubscriptionPlans(Base):
 
     is_active = Column(Boolean, default=True)
 
-    subscriptions = relationship("Subscriptions", back_populates="plan")
+    subscriptions = relationship(
+        "Subscriptions", back_populates="plan", cascade="all, delete-orphan"
+    )
 
 
 class Subscriptions(Base):
@@ -46,9 +50,13 @@ class Subscriptions(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     plan_id = Column(
-        UUID(as_uuid=True), ForeignKey("subscription_plan.id"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("subscription_plan.id", ondelete="CASCADE"),
+        nullable=False,
     )
     payment_method = Column(String(50), nullable=False)
     end_date = Column(Date, nullable=False)

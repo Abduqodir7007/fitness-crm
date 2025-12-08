@@ -46,6 +46,14 @@ export default function DashboardContent() {
 
     useEffect(() => {
         fetchDashboardData();
+
+        // Refresh when page regains focus (user switches tabs/windows)
+        const handleFocus = () => {
+            fetchDashboardData();
+        };
+
+        window.addEventListener("focus", handleFocus);
+        return () => window.removeEventListener("focus", handleFocus);
     }, []);
 
     const fetchDashboardData = async () => {

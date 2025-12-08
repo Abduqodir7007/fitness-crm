@@ -40,7 +40,7 @@ async def get_subscription_plans(
     return plans
 
 
-@router.put("/subscription_plans/{plan_id}", status_code=status.HTTP_200_OK)
+@router.put("/subscription_plans/deactivate/{plan_id}", status_code=status.HTTP_200_OK)
 async def deactivate_subscription_plan(
     plan_id: str, db: AsyncSession = Depends(get_db)
 ):
