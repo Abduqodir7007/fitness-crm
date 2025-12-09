@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
     
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str
 
     class Config:
         env_file = "../.env"

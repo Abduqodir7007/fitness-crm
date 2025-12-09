@@ -4,7 +4,7 @@ from ..database import get_db
 from sqlalchemy import select, func
 from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import SubscriptionPlans, Subscriptions
+from ..models import SubscriptionPlans, Subscriptions, Payment
 from ..schemas.admin import SubscriptionPlanCreate, SubscriptionCreate
 from ..utils import is_subscription_active
 
@@ -81,14 +81,14 @@ async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_
 async def subscriptions_assign(
     subscription: SubscriptionCreate, db: AsyncSession = Depends(get_db)
 ):
-    
+
     is_active = await is_subscription_active(subscription.user_id, db)
     if is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already has an active subscription",
         )
-        
+
     new_subscription = Subscriptions(
         user_id=subscription.user_id,
         plan_id=subscription.plan_id,
@@ -96,6 +96,23 @@ async def subscriptions_assign(
         start_date=date.today(),
         end_date=date.today() + timedelta(days=30),
     )
+    result = await db.execute(
+        select(SubscriptionPlans).where(SubscriptionPlans.id == subscription.plan_id)
+    )
+    plan = result.scalars().first()
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Subscription plan not found",
+        )
+
+    payment = Payment(
+        user_id=subscription.user_id,
+        amount=plan.price,
+        payment_method=subscription.payment_method,
+    )
+
     db.add(new_subscription)
+    db.add(payment)
     await db.commit()
     return {"message": "Subscription assigned successfully"}

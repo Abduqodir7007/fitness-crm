@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .database import Base
-from datetime import datetime
+from datetime import datetime, date
 
 
 class Users(Base):
@@ -74,6 +74,20 @@ class Attendance(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    date = Column(Date, default=func.current_date(), nullable=False)  # change later
+    date = Column(Date, default=date.today(), nullable=False)  # change later
 
     user = relationship("Users", back_populates="attendances")
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    amount = Column(Integer, nullable=False)
+    payment_date = Column(Date, default=date.today(), nullable=False)
+    payment_method = Column(String(50), nullable=False)
+
+    user = relationship("Users", back_populates="payments")
