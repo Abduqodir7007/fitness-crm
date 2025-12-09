@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import AddUserModal from "./AddUserModal";
 import { authAPI } from "../api/auth";
 import { usersAPI } from "../api/users";
@@ -14,6 +15,7 @@ export default function UsersContent() {
     const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const websocketRef = useRef(null);
+    const navigate = useNavigate();
 
     // Fetch users from database on component mount and setup WebSocket
     useEffect(() => {
@@ -153,9 +155,17 @@ export default function UsersContent() {
                 websocketRef.current.send(JSON.stringify({ type: "users" }));
             }
         } catch (err) {
-            setError("Foydalanuvchini o'chirishda xato");
+            // Display backend error message or generic error
+            const errorMessage =
+                err.response?.data?.detail ||
+                "Foydalanuvchini o'chirishda xato";
+            setError(errorMessage);
             console.error("Error deleting user:", err);
         }
+    };
+
+    const handleViewUser = (user) => {
+        navigate(`/user/${user.id}`);
     };
 
     // Filter users based on search query
@@ -374,6 +384,27 @@ export default function UsersContent() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                                                <button
+                                                    onClick={() =>
+                                                        handleViewUser(user)
+                                                    }
+                                                    className="text-black hover:text-blue-600 transition"
+                                                    title="Ko'rish"
+                                                >
+                                                    <svg
+                                                        className="w-5 h-5 inline"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                    >
+                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                                                        <path
+                                                            fillRule="evenodd"
+                                                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                                                            clipRule="evenodd"
+                                                        ></path>
+                                                    </svg>
+                                                </button>
                                                 <button
                                                     className="text-black hover:text-blue-600 transition"
                                                     title="Tahrirlash"

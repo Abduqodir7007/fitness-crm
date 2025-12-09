@@ -81,7 +81,12 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
             setError(null);
             onClose();
         } catch (err) {
-            setError(err.message || "Obuna yaratishda xato");
+            // Handle backend error message
+            const errorMessage =
+                err.response?.data?.detail ||
+                err.message ||
+                "Obuna yaratishda xato";
+            setError(errorMessage);
         } finally {
             setIsSubmitting(false);
         }

@@ -169,6 +169,10 @@ export default function DashboardContent() {
             await fetchDashboardData();
         } catch (err) {
             console.error("Error adding subscription:", err);
+            // Display backend error message or generic error
+            const errorMessage =
+                err.response?.data?.detail || "Obuna yaratishda xato";
+            setError(errorMessage);
             throw err;
         }
     };

@@ -36,7 +36,42 @@ class UserLogin(BaseModel):
     password: str
 
 
+class SubscriptionPlansResponse(BaseModel):
+    type: str
+    price: int
+    duration_days: int
+    is_active: bool
+
+
+    class Config:
+        from_attributes = True
+
+
+class SubscriptionResponse(BaseModel):
+    start_date: date
+    end_date: date
+    plan: SubscriptionPlansResponse
+
+    @field_serializer("start_date", "end_date")
+    def serialize_date(self, date_field: date) -> str:
+        return date_field.isoformat()
+
+    class Config:
+        from_attributes = True
+
+
 class UserResponse(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    date_of_birth: date | None = None
+    gender: Gender | None = None
+    role: UserRole | None = None
+    is_active: bool | None = True
+    subscriptions: list[SubscriptionResponse] = []
+
+
+class UserListResponse(BaseModel):
     id: UUID
     first_name: str
     last_name: str
