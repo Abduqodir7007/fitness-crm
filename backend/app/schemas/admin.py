@@ -12,8 +12,23 @@ class SubscriptionPlanCreate(BaseModel):
     price: int
     duration_days: int
 
+    class Config:
+        from_attributes = True
+
 
 class SubscriptionCreate(BaseModel):
     user_id: str
     plan_id: str
     payment_method: PaymentMethod
+
+    class Config:
+        from_attributes = True
+
+
+class DailySubscriptionCreate(BaseModel):
+    user_id: str
+    amount: int
+    payment_method: PaymentMethod
+
+    class Config:
+        from_attributes = True

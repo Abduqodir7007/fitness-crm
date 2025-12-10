@@ -1,19 +1,26 @@
-from datetime import datetime, timedelta, date
+from datetime import timedelta, date
 from fastapi import APIRouter, Depends, HTTPException, status
 from ..dependancy import get_superuser
 from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import Users, Attendance, Subscriptions, SubscriptionPlans
+from ..models import (
+    Users,
+    Attendance,
+    Subscriptions,
+    SubscriptionPlans,
+    Payment,
+    DailySubscriptions,
+)
 from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
-
+# number of active users, number of trainers, today's attendance
 @router.get(
     "/user-stats", status_code=status.HTTP_200_OK
-)  # number of active users, number of trainers, today's attendance
+)  
 async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
 ):
@@ -84,6 +91,47 @@ async def get_subscription_stats(
         }
     )
 
+    return response
+
+
+# total profit for a day, daily clients, weekly clients
+# TO DO: cache the response for 10 minustes
+@router.get("/subscription/payment")
+async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
+    result1 = await db.execute(
+        select(func.sum(Payment.amount)).where(Payment.payment_date == date.today())
+    )
+
+    result2 = await db.execute(
+        select(func.count(DailySubscriptions.id)).where(
+            DailySubscriptions.subscription_date == date.today()
+        )
+    )
+
+    start_date = date.today() - timedelta(days=7)
+    end_date = date.today() - timedelta(days=1)
+
+    result3 = await db.execute(
+        select(func.count(DailySubscriptions.id))
+        .where(DailySubscriptions.subscription_date.between(start_date, end_date))
+        .group_by(func.date(DailySubscriptions.subscription_date))
+    )
+
+    weekly_visits = result3.scalars().all()
+    length = len(weekly_visits)
+    weekly_clients = []
+    for i in range(length):
+        day = (date.today() - timedelta(days=length - i)).strftime("%A")
+        weekly_clients.append({"day": day, "count": weekly_visits[i]})
+
+    daily_visits = result2.scalars().first()
+    daily_profit = result1.scalars().first()
+
+    response = {
+        "weekly_clients": weekly_clients,
+        "daily_profit": daily_profit or 0,
+        "daily_clients": daily_visits or 0,
+    }
     return response
 
 

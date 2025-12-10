@@ -26,8 +26,10 @@ class Users(Base):
     subscriptions = relationship(
         "Subscriptions", back_populates="user", cascade="all, delete-orphan"
     )
-    attendances = relationship("Attendance", back_populates="user")
 
+    attendances = relationship("Attendance", back_populates="user")
+    daily_subscriptions = relationship("DailySubscriptions", back_populates="user")
+    payments = relationship("Payment", back_populates="user")
 
 class SubscriptionPlans(Base):
     __tablename__ = "subscription_plan"
@@ -66,6 +68,7 @@ class Subscriptions(Base):
 
     user = relationship("Users", back_populates="subscriptions")
     plan = relationship("SubscriptionPlans", back_populates="subscriptions")
+    
 
 
 class Attendance(Base):
@@ -91,3 +94,15 @@ class Payment(Base):
     payment_method = Column(String(50), nullable=False)
 
     user = relationship("Users", back_populates="payments")
+    
+
+class DailySubscriptions(Base):
+    __tablename__ = "daily_subscriptions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    subscription_date = Column(Date, default=date.today(), nullable=False)
+    amount = Column(Integer, nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    user = relationship("Users", back_populates="daily_subscriptions")

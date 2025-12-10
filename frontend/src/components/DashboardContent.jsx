@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AddUserModal from "./AddUserModal";
 import SubscriptionModal from "./SubscriptionModal";
+import DailySubscriptionModal from "./DailySubscriptionModal";
 import { dashboardAPI } from "../api/dashboard";
 import { authAPI } from "../api/auth";
 import { subscriptionAPI } from "../api/subscription";
@@ -35,14 +36,41 @@ export default function DashboardContent() {
             color: "#f59e0b",
             key: "total_active_subscriptions",
         },
+        {
+            label: "Kunlik Paketlar",
+            value: "0",
+            icon: "📦",
+            color: "#8b5cf6",
+            key: "daily_plans_sold",
+        },
+        {
+            label: "Bugun Foyda",
+            value: "0",
+            icon: "💰",
+            color: "#06b6d4",
+            key: "daily_profit",
+            isProfit: true,
+        },
     ]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
         useState(false);
+    const [isDailySubscriptionModalOpen, setIsDailySubscriptionModalOpen] =
+        useState(false);
     const [pieChartData, setPieChartData] = useState([]);
     const [hoveredSegment, setHoveredSegment] = useState(null);
+    const [hoveredLinePoint, setHoveredLinePoint] = useState(null);
+    const [dailyClientsData, setDailyClientsData] = useState([
+        { day: "Dushanba", count: 45 },
+        { day: "Seshanba", count: 52 },
+        { day: "Chorshanba", count: 48 },
+        { day: "Payshanba", count: 61 },
+        { day: "Juma", count: 55 },
+        { day: "Shanba", count: 67 },
+        { day: "Yakshanba", count: 58 },
+    ]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -56,17 +84,30 @@ export default function DashboardContent() {
         return () => window.removeEventListener("focus", handleFocus);
     }, []);
 
+    // Auto-dismiss error after 5 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
-            const [userStatsRes, subStatsRes] = await Promise.all([
-                dashboardAPI.getUserStats(),
-                dashboardAPI.getSubscriptionStats(),
-            ]);
+            const [userStatsRes, subStatsRes, dailyStatsRes] =
+                await Promise.all([
+                    dashboardAPI.getUserStats(),
+                    dashboardAPI.getSubscriptionStats(),
+                    dashboardAPI.getDailyStats(),
+                ]);
 
             // Merge the responses
             const userData = userStatsRes[0] || {};
             const subDataArray = subStatsRes || [];
+            const dailyData = dailyStatsRes || {};
 
             // Extract pie chart data and total subscriptions
             const pieChartItems = subDataArray.filter((item) => item.type);
@@ -79,6 +120,8 @@ export default function DashboardContent() {
                 total_trainers: userData.total_trainers || 0,
                 today_attendance: userData.today_attendance || 0,
                 total_active_subscriptions: subscriptionTotal,
+                daily_plans_sold: dailyData.daily_clients || 0,
+                daily_profit: dailyData.daily_profit || 0,
             };
 
             // Update stats with fetched data
@@ -91,6 +134,28 @@ export default function DashboardContent() {
 
             // Set pie chart data
             setPieChartData(pieChartItems);
+
+            // Update line graph data with weekly clients
+            if (
+                dailyData.weekly_clients &&
+                dailyData.weekly_clients.length > 0
+            ) {
+                // Convert English day names to Uzbek
+                const dayMap = {
+                    Monday: "Dushanba",
+                    Tuesday: "Seshanba",
+                    Wednesday: "Chorshanba",
+                    Thursday: "Payshanba",
+                    Friday: "Juma",
+                    Saturday: "Shanba",
+                    Sunday: "Yakshanba",
+                };
+                const convertedData = dailyData.weekly_clients.map((item) => ({
+                    day: dayMap[item.day] || item.day,
+                    count: item.count || 0,
+                }));
+                setDailyClientsData(convertedData);
+            }
         } catch (err) {
             console.error("Error fetching dashboard data:", err);
             setError("Dashboard ma'lumotlarini yuklashda xato");
@@ -177,6 +242,26 @@ export default function DashboardContent() {
         }
     };
 
+    const handleAddDailySubscription = async (formData) => {
+        try {
+            // Call daily subscription creation API
+            await subscriptionAPI.createDaily(
+                formData.userId,
+                formData.amount,
+                formData.paymentMethod
+            );
+            setIsDailySubscriptionModalOpen(false);
+            // Refresh stats after adding subscription
+            await fetchDashboardData();
+        } catch (err) {
+            console.error("Error adding daily subscription:", err);
+            const errorMessage =
+                err.response?.data?.detail || "Kunlik obuna yaratishda xato";
+            setError(errorMessage);
+            throw err;
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Header with Title and Buttons */}
@@ -209,6 +294,19 @@ export default function DashboardContent() {
                     >
                         Abonement sotish
                     </button>
+                    <button
+                        onClick={() => setIsDailySubscriptionModalOpen(true)}
+                        className="px-6 py-2 rounded-lg text-white font-semibold transition"
+                        style={{ backgroundColor: "#10b981" }}
+                        onMouseEnter={(e) =>
+                            (e.target.style.backgroundColor = "#059669")
+                        }
+                        onMouseLeave={(e) =>
+                            (e.target.style.backgroundColor = "#10b981")
+                        }
+                    >
+                        Kunlik abonement sotish
+                    </button>
                 </div>
             </div>
 
@@ -226,9 +324,22 @@ export default function DashboardContent() {
                 onSubmit={handleAddSubscription}
             />
 
+            {/* Add Daily Subscription Modal */}
+            <DailySubscriptionModal
+                isOpen={isDailySubscriptionModalOpen}
+                onClose={() => setIsDailySubscriptionModalOpen(false)}
+                onSubmit={handleAddDailySubscription}
+            />
+
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    {error}
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+                    <span>{error}</span>
+                    <button
+                        onClick={() => setError(null)}
+                        className="text-red-700 hover:text-red-900 font-bold text-xl ml-4"
+                    >
+                        ×
+                    </button>
                 </div>
             )}
 
@@ -237,7 +348,7 @@ export default function DashboardContent() {
                     <p className="text-gray-600">Statistika yuklanmoqda...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     {stats.map((stat, index) => (
                         <div
                             key={index}
@@ -249,7 +360,9 @@ export default function DashboardContent() {
                                         {stat.label}
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                                        {stat.value}
+                                        {stat.isProfit
+                                            ? stat.value.toLocaleString("uz-UZ")
+                                            : stat.value}
                                     </p>
                                 </div>
                                 <div
@@ -266,6 +379,222 @@ export default function DashboardContent() {
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Daily Clients Line Chart */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        So'nggi 7 kunlik mijozlar
+                    </h3>
+                    <div className="h-64">
+                        <svg
+                            width="100%"
+                            height="100%"
+                            viewBox="0 0 600 250"
+                            className="w-full"
+                        >
+                            {/* Gradient definition */}
+                            <defs>
+                                <linearGradient
+                                    id="areaGradient"
+                                    x1="0%"
+                                    y1="0%"
+                                    x2="0%"
+                                    y2="100%"
+                                >
+                                    <stop
+                                        offset="0%"
+                                        stopColor="#ffd0c2"
+                                        stopOpacity="0.8"
+                                    />
+                                    <stop
+                                        offset="50%"
+                                        stopColor="#ffe3db"
+                                        stopOpacity="0.5"
+                                    />
+                                    <stop
+                                        offset="100%"
+                                        stopColor="#ffefea"
+                                        stopOpacity="0.2"
+                                    />
+                                </linearGradient>
+                            </defs>
+                            {/* Grid lines */}
+                            {[0, 1, 2, 3, 4].map((i) => (
+                                <line
+                                    key={`grid-${i}`}
+                                    x1="60"
+                                    y1={50 + i * 40}
+                                    x2="580"
+                                    y2={50 + i * 40}
+                                    stroke="#e5e7eb"
+                                    strokeWidth="1"
+                                />
+                            ))}
+
+                            {/* Y-axis labels */}
+                            {[0, 2, 4, 6, 8, 10].map((value, i) => (
+                                <text
+                                    key={`y-label-${i}`}
+                                    x="50"
+                                    y={210 - i * 40}
+                                    fontSize="12"
+                                    fill="#6b7280"
+                                    textAnchor="end"
+                                >
+                                    {value}
+                                </text>
+                            ))}
+
+                            {/* X-axis */}
+                            <line
+                                x1="60"
+                                y1="210"
+                                x2="580"
+                                y2="210"
+                                stroke="#d1d5db"
+                                strokeWidth="2"
+                            />
+
+                            {/* Y-axis */}
+                            <line
+                                x1="60"
+                                y1="30"
+                                x2="60"
+                                y2="210"
+                                stroke="#d1d5db"
+                                strokeWidth="2"
+                            />
+
+                            {/* Line path with fill area */}
+                            {(() => {
+                                const maxValue = 10;
+                                const points = dailyClientsData.map(
+                                    (item, index) => {
+                                        const x = 100 + index * 70;
+                                        const y =
+                                            210 - (item.count / maxValue) * 170;
+                                        return `${x},${y}`;
+                                    }
+                                );
+                                // Create a closed polygon for the fill area
+                                const fillPoints = points + ` 520,210 60,210`; // Close the path at the bottom
+                                return (
+                                    <>
+                                        <polygon
+                                            points={fillPoints}
+                                            fill="url(#areaGradient)"
+                                        />
+                                        <polyline
+                                            points={points.join(" ")}
+                                            fill="none"
+                                            stroke="#ff5724"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </>
+                                );
+                            })()}
+
+                            {/* Data points (circles) */}
+                            {dailyClientsData.map((item, index) => {
+                                const maxValue = 10;
+                                const x = 100 + index * 70;
+                                const y = 210 - (item.count / maxValue) * 170;
+                                return (
+                                    <g
+                                        key={`point-${index}`}
+                                        onMouseEnter={() =>
+                                            setHoveredLinePoint(index)
+                                        }
+                                        onMouseLeave={() =>
+                                            setHoveredLinePoint(null)
+                                        }
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        <circle
+                                            cx={x}
+                                            cy={y}
+                                            r={
+                                                hoveredLinePoint === index
+                                                    ? "7"
+                                                    : "5"
+                                            }
+                                            fill="#ff5724"
+                                            style={{ transition: "r 0.2s" }}
+                                        />
+                                        <circle
+                                            cx={x}
+                                            cy={y}
+                                            r="3"
+                                            fill="white"
+                                        />
+                                    </g>
+                                );
+                            })}
+
+                            {/* Tooltip for hovered point */}
+                            {hoveredLinePoint !== null &&
+                                (() => {
+                                    const item =
+                                        dailyClientsData[hoveredLinePoint];
+                                    const maxValue = 10;
+                                    const x = 100 + hoveredLinePoint * 70;
+                                    const y =
+                                        210 - (item.count / maxValue) * 170;
+                                    return (
+                                        <g key="tooltip">
+                                            <rect
+                                                x={x - 40}
+                                                y={y - 50}
+                                                width="80"
+                                                height="35"
+                                                fill="#1f2937"
+                                                rx="4"
+                                            />
+                                            <text
+                                                x={x}
+                                                y={y - 30}
+                                                fontSize="12"
+                                                fill="white"
+                                                textAnchor="middle"
+                                                fontWeight="bold"
+                                            >
+                                                {item.day}
+                                            </text>
+                                            <text
+                                                x={x}
+                                                y={y - 15}
+                                                fontSize="14"
+                                                fill="#ff5724"
+                                                textAnchor="middle"
+                                                fontWeight="bold"
+                                            >
+                                                {item.count} nafar
+                                            </text>
+                                        </g>
+                                    );
+                                })()}
+
+                            {/* X-axis labels */}
+                            {dailyClientsData.map((item, index) => {
+                                const x = 100 + index * 70;
+                                return (
+                                    <text
+                                        key={`x-label-${index}`}
+                                        x={x}
+                                        y="235"
+                                        fontSize="12"
+                                        fill="#6b7280"
+                                        textAnchor="middle"
+                                    >
+                                        {item.day.substring(0, 3)}
+                                    </text>
+                                );
+                            })}
+                        </svg>
+                    </div>
+                </div>
+
                 {/* Revenue Chart */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">

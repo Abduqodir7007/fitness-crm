@@ -20,4 +20,16 @@ export const dashboardAPI = {
             throw error;
         }
     },
+
+    getDailyStats: async () => {
+        try {
+            const response = await client.get(
+                "/dashboard/subscription/payment"
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Get daily stats error:", error);
+            throw error;
+        }
+    },
 };

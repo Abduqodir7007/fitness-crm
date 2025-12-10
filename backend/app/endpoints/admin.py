@@ -4,8 +4,17 @@ from ..database import get_db
 from sqlalchemy import select, func
 from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import SubscriptionPlans, Subscriptions, Payment
-from ..schemas.admin import SubscriptionPlanCreate, SubscriptionCreate
+from ..models import (
+    SubscriptionPlans,
+    Subscriptions,
+    Payment,
+    DailySubscriptions,
+)
+from ..schemas.admin import (
+    SubscriptionPlanCreate,
+    SubscriptionCreate,
+    DailySubscriptionCreate,
+)
 from ..utils import is_subscription_active
 
 
@@ -116,3 +125,31 @@ async def subscriptions_assign(
     db.add(payment)
     await db.commit()
     return {"message": "Subscription assigned successfully"}
+
+
+@router.post("/subscriptions/assign/daily", status_code=status.HTTP_200_OK)
+async def daily_subscriptions_assign(
+    subscription: DailySubscriptionCreate, db: AsyncSession = Depends(get_db)
+):
+
+    is_active = await is_subscription_active(subscription.user_id, db)
+    if is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already has an active subscription",
+        )
+
+    daily_sub = DailySubscriptions(
+        user_id=subscription.user_id,
+        amount=subscription.amount,
+    )
+    
+    payment = Payment(
+        user_id=subscription.user_id,
+        amount=subscription.amount,
+        payment_method=subscription.payment_method,
+    )
+    db.add(daily_sub)
+    db.add(payment)
+    await db.commit()
+    return {"message": "Daily Subscription assigned successfully"}
