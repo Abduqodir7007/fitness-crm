@@ -378,224 +378,377 @@ export default function DashboardContent() {
             )}
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Daily Clients Line Chart */}
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        So'nggi 7 kunlik mijozlar
-                    </h3>
-                    <div className="h-64">
-                        <svg
-                            width="100%"
-                            height="100%"
-                            viewBox="0 0 600 250"
-                            className="w-full"
-                        >
-                            {/* Gradient definition */}
-                            <defs>
-                                <linearGradient
-                                    id="areaGradient"
-                                    x1="0%"
-                                    y1="0%"
-                                    x2="0%"
-                                    y2="100%"
-                                >
-                                    <stop
-                                        offset="0%"
-                                        stopColor="#ffd0c2"
-                                        stopOpacity="0.8"
-                                    />
-                                    <stop
-                                        offset="50%"
-                                        stopColor="#ffe3db"
-                                        stopOpacity="0.5"
-                                    />
-                                    <stop
-                                        offset="100%"
-                                        stopColor="#ffefea"
-                                        stopOpacity="0.2"
-                                    />
-                                </linearGradient>
-                            </defs>
-                            {/* Grid lines */}
-                            {[0, 1, 2, 3, 4].map((i) => (
-                                <line
-                                    key={`grid-${i}`}
-                                    x1="60"
-                                    y1={50 + i * 40}
-                                    x2="580"
-                                    y2={50 + i * 40}
-                                    stroke="#e5e7eb"
-                                    strokeWidth="1"
-                                />
-                            ))}
-
-                            {/* Y-axis labels */}
-                            {[0, 2, 4, 6, 8, 10].map((value, i) => (
-                                <text
-                                    key={`y-label-${i}`}
-                                    x="50"
-                                    y={210 - i * 40}
-                                    fontSize="12"
-                                    fill="#6b7280"
-                                    textAnchor="end"
-                                >
-                                    {value}
-                                </text>
-                            ))}
-
-                            {/* X-axis */}
-                            <line
-                                x1="60"
-                                y1="210"
-                                x2="580"
-                                y2="210"
-                                stroke="#d1d5db"
-                                strokeWidth="2"
-                            />
-
-                            {/* Y-axis */}
-                            <line
-                                x1="60"
-                                y1="30"
-                                x2="60"
-                                y2="210"
-                                stroke="#d1d5db"
-                                strokeWidth="2"
-                            />
-
-                            {/* Line path with fill area */}
-                            {(() => {
-                                const maxValue = 10;
-                                const points = dailyClientsData.map(
-                                    (item, index) => {
-                                        const x = 100 + index * 70;
-                                        const y =
-                                            210 - (item.count / maxValue) * 170;
-                                        return `${x},${y}`;
-                                    }
-                                );
-                                // Create a closed polygon for the fill area
-                                const fillPoints = points + ` 520,210 60,210`; // Close the path at the bottom
-                                return (
-                                    <>
-                                        <polygon
-                                            points={fillPoints}
-                                            fill="url(#areaGradient)"
-                                        />
-                                        <polyline
-                                            points={points.join(" ")}
-                                            fill="none"
-                                            stroke="#ff5724"
-                                            strokeWidth="3"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </>
-                                );
-                            })()}
-
-                            {/* Data points (circles) */}
-                            {dailyClientsData.map((item, index) => {
-                                const maxValue = 10;
-                                const x = 100 + index * 70;
-                                const y = 210 - (item.count / maxValue) * 170;
-                                return (
-                                    <g
-                                        key={`point-${index}`}
-                                        onMouseEnter={() =>
-                                            setHoveredLinePoint(index)
-                                        }
-                                        onMouseLeave={() =>
-                                            setHoveredLinePoint(null)
-                                        }
-                                        style={{ cursor: "pointer" }}
+            <div className="space-y-6">
+                {/* First Row: Line Graph and Pie Chart */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Daily Clients Line Chart */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            So'nggi 7 kunlik mijozlar
+                        </h3>
+                        <div className="h-64">
+                            <svg
+                                width="100%"
+                                height="100%"
+                                viewBox="0 0 600 250"
+                                className="w-full"
+                            >
+                                {/* Gradient definition */}
+                                <defs>
+                                    <linearGradient
+                                        id="areaGradient"
+                                        x1="0%"
+                                        y1="0%"
+                                        x2="0%"
+                                        y2="100%"
                                     >
-                                        <circle
-                                            cx={x}
-                                            cy={y}
-                                            r={
-                                                hoveredLinePoint === index
-                                                    ? "7"
-                                                    : "5"
-                                            }
-                                            fill="#ff5724"
-                                            style={{ transition: "r 0.2s" }}
+                                        <stop
+                                            offset="0%"
+                                            stopColor="#ffd0c2"
+                                            stopOpacity="0.8"
                                         />
-                                        <circle
-                                            cx={x}
-                                            cy={y}
-                                            r="3"
-                                            fill="white"
+                                        <stop
+                                            offset="50%"
+                                            stopColor="#ffe3db"
+                                            stopOpacity="0.5"
                                         />
-                                    </g>
-                                );
-                            })}
+                                        <stop
+                                            offset="100%"
+                                            stopColor="#ffefea"
+                                            stopOpacity="0.2"
+                                        />
+                                    </linearGradient>
+                                </defs>
+                                {/* Grid lines */}
+                                {[0, 1, 2, 3, 4].map((i) => (
+                                    <line
+                                        key={`grid-${i}`}
+                                        x1="60"
+                                        y1={50 + i * 40}
+                                        x2="580"
+                                        y2={50 + i * 40}
+                                        stroke="#e5e7eb"
+                                        strokeWidth="1"
+                                    />
+                                ))}
 
-                            {/* Tooltip for hovered point */}
-                            {hoveredLinePoint !== null &&
-                                (() => {
-                                    const item =
-                                        dailyClientsData[hoveredLinePoint];
+                                {/* Y-axis labels */}
+                                {[0, 2, 4, 6, 8, 10].map((value, i) => (
+                                    <text
+                                        key={`y-label-${i}`}
+                                        x="50"
+                                        y={210 - i * 40}
+                                        fontSize="12"
+                                        fill="#6b7280"
+                                        textAnchor="end"
+                                    >
+                                        {value}
+                                    </text>
+                                ))}
+
+                                {/* X-axis */}
+                                <line
+                                    x1="60"
+                                    y1="210"
+                                    x2="580"
+                                    y2="210"
+                                    stroke="#d1d5db"
+                                    strokeWidth="2"
+                                />
+
+                                {/* Y-axis */}
+                                <line
+                                    x1="60"
+                                    y1="30"
+                                    x2="60"
+                                    y2="210"
+                                    stroke="#d1d5db"
+                                    strokeWidth="2"
+                                />
+
+                                {/* Line path with fill area */}
+                                {(() => {
                                     const maxValue = 10;
-                                    const x = 100 + hoveredLinePoint * 70;
-                                    const y =
-                                        210 - (item.count / maxValue) * 170;
+                                    const points = dailyClientsData.map(
+                                        (item, index) => {
+                                            const x = 100 + index * 70;
+                                            const y =
+                                                210 -
+                                                (item.count / maxValue) * 170;
+                                            return `${x},${y}`;
+                                        }
+                                    );
+                                    // Create a closed polygon for the fill area
+                                    const fillPoints =
+                                        points + ` 520,210 60,210`; // Close the path at the bottom
                                     return (
-                                        <g key="tooltip">
-                                            <rect
-                                                x={x - 40}
-                                                y={y - 50}
-                                                width="80"
-                                                height="35"
-                                                fill="#1f2937"
-                                                rx="4"
+                                        <>
+                                            <polygon
+                                                points={fillPoints}
+                                                fill="url(#areaGradient)"
                                             />
-                                            <text
-                                                x={x}
-                                                y={y - 30}
-                                                fontSize="12"
-                                                fill="white"
-                                                textAnchor="middle"
-                                                fontWeight="bold"
-                                            >
-                                                {item.day}
-                                            </text>
-                                            <text
-                                                x={x}
-                                                y={y - 15}
-                                                fontSize="14"
-                                                fill="#ff5724"
-                                                textAnchor="middle"
-                                                fontWeight="bold"
-                                            >
-                                                {item.count} nafar
-                                            </text>
-                                        </g>
+                                            <polyline
+                                                points={points.join(" ")}
+                                                fill="none"
+                                                stroke="#ff5724"
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        </>
                                     );
                                 })()}
 
-                            {/* X-axis labels */}
-                            {dailyClientsData.map((item, index) => {
-                                const x = 100 + index * 70;
-                                return (
-                                    <text
-                                        key={`x-label-${index}`}
-                                        x={x}
-                                        y="235"
-                                        fontSize="12"
-                                        fill="#6b7280"
-                                        textAnchor="middle"
-                                    >
-                                        {item.day.substring(0, 3)}
-                                    </text>
-                                );
-                            })}
-                        </svg>
+                                {/* Data points (circles) */}
+                                {dailyClientsData.map((item, index) => {
+                                    const maxValue = 10;
+                                    const x = 100 + index * 70;
+                                    const y =
+                                        210 - (item.count / maxValue) * 170;
+                                    return (
+                                        <g
+                                            key={`point-${index}`}
+                                            onMouseEnter={() =>
+                                                setHoveredLinePoint(index)
+                                            }
+                                            onMouseLeave={() =>
+                                                setHoveredLinePoint(null)
+                                            }
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            <circle
+                                                cx={x}
+                                                cy={y}
+                                                r={
+                                                    hoveredLinePoint === index
+                                                        ? "7"
+                                                        : "5"
+                                                }
+                                                fill="#ff5724"
+                                                style={{ transition: "r 0.2s" }}
+                                            />
+                                            <circle
+                                                cx={x}
+                                                cy={y}
+                                                r="3"
+                                                fill="white"
+                                            />
+                                        </g>
+                                    );
+                                })}
+
+                                {/* Tooltip for hovered point */}
+                                {hoveredLinePoint !== null &&
+                                    (() => {
+                                        const item =
+                                            dailyClientsData[hoveredLinePoint];
+                                        const maxValue = 10;
+                                        const x = 100 + hoveredLinePoint * 70;
+                                        const y =
+                                            210 - (item.count / maxValue) * 170;
+                                        return (
+                                            <g key="tooltip">
+                                                <rect
+                                                    x={x - 40}
+                                                    y={y - 50}
+                                                    width="80"
+                                                    height="35"
+                                                    fill="#1f2937"
+                                                    rx="4"
+                                                />
+                                                <text
+                                                    x={x}
+                                                    y={y - 30}
+                                                    fontSize="12"
+                                                    fill="white"
+                                                    textAnchor="middle"
+                                                    fontWeight="bold"
+                                                >
+                                                    {item.day}
+                                                </text>
+                                                <text
+                                                    x={x}
+                                                    y={y - 15}
+                                                    fontSize="14"
+                                                    fill="#ff5724"
+                                                    textAnchor="middle"
+                                                    fontWeight="bold"
+                                                >
+                                                    {item.count} nafar
+                                                </text>
+                                            </g>
+                                        );
+                                    })()}
+
+                                {/* X-axis labels */}
+                                {dailyClientsData.map((item, index) => {
+                                    const x = 100 + index * 70;
+                                    return (
+                                        <text
+                                            key={`x-label-${index}`}
+                                            x={x}
+                                            y="235"
+                                            fontSize="12"
+                                            fill="#6b7280"
+                                            textAnchor="middle"
+                                        >
+                                            {item.day.substring(0, 3)}
+                                        </text>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    </div>
+
+                    {/* Subscription Distribution Pie Chart */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            Abonementlar bo'yicha
+                        </h3>
+                        <div className="flex flex-col items-center justify-center h-64">
+                            {pieChartData.length === 0 ? (
+                                <p className="text-gray-600">
+                                    Ma'lumot mavjud emas
+                                </p>
+                            ) : (
+                                <>
+                                    <div className="relative">
+                                        <svg
+                                            width="200"
+                                            height="200"
+                                            viewBox="0 0 200 200"
+                                            className="mb-4"
+                                            style={{ overflow: "visible" }}
+                                        >
+                                            {(() => {
+                                                const colors = [
+                                                    "#3b82f5",
+                                                    "#ff5724",
+                                                    "#ef4343",
+                                                    "#16a34a",
+                                                ];
+                                                let offset = 0;
+                                                return pieChartData.map(
+                                                    (item, index) => {
+                                                        const percentage =
+                                                            item.percentage ||
+                                                            0;
+                                                        const circumference = 502.4;
+                                                        const dasharray =
+                                                            (percentage / 100) *
+                                                            circumference;
+                                                        const color =
+                                                            colors[
+                                                                index %
+                                                                    colors.length
+                                                            ];
+                                                        const dashoffset =
+                                                            -offset;
+                                                        offset += dasharray;
+                                                        const isHovered =
+                                                            hoveredSegment ===
+                                                            index;
+
+                                                        return (
+                                                            <circle
+                                                                key={index}
+                                                                cx="100"
+                                                                cy="100"
+                                                                r="80"
+                                                                fill="none"
+                                                                stroke={color}
+                                                                strokeWidth={
+                                                                    isHovered
+                                                                        ? "45"
+                                                                        : "40"
+                                                                }
+                                                                strokeDasharray={`${dasharray} ${circumference}`}
+                                                                strokeDashoffset={
+                                                                    dashoffset
+                                                                }
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                transform="rotate(-90 100 100)"
+                                                                style={{
+                                                                    cursor: "pointer",
+                                                                    transition:
+                                                                        "stroke-width 0.2s",
+                                                                    opacity:
+                                                                        hoveredSegment ===
+                                                                            null ||
+                                                                        isHovered
+                                                                            ? 1
+                                                                            : 0.7,
+                                                                }}
+                                                                onMouseEnter={() =>
+                                                                    setHoveredSegment(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                onMouseLeave={() =>
+                                                                    setHoveredSegment(
+                                                                        null
+                                                                    )
+                                                                }
+                                                            />
+                                                        );
+                                                    }
+                                                );
+                                            })()}
+                                        </svg>
+                                        {hoveredSegment !== null && (
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded text-sm font-semibold whitespace-nowrap">
+                                                {
+                                                    pieChartData[hoveredSegment]
+                                                        .count
+                                                }{" "}
+                                                obunalar
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-wrap gap-4 justify-center">
+                                        {pieChartData.map((item, index) => {
+                                            const colors = [
+                                                "#3b82f5",
+                                                "#ff5724",
+                                                "#ef4343",
+                                                "#16a34a",
+                                            ];
+                                            const color =
+                                                colors[index % colors.length];
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center gap-2 cursor-pointer"
+                                                    onMouseEnter={() =>
+                                                        setHoveredSegment(index)
+                                                    }
+                                                    onMouseLeave={() =>
+                                                        setHoveredSegment(null)
+                                                    }
+                                                >
+                                                    <div
+                                                        className="w-4 h-4 rounded"
+                                                        style={{
+                                                            backgroundColor:
+                                                                color,
+                                                        }}
+                                                    />
+                                                    <span className="text-sm text-gray-700">
+                                                        {item.type}{" "}
+                                                        {item.percentage}%
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Revenue Chart */}
+                {/* Revenue Chart - Full Width Below */}
                 <div className="bg-white rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Oylik daromad
@@ -632,150 +785,7 @@ export default function DashboardContent() {
                         ))}
                     </div>
                 </div>
-
-                {/* Subscription Distribution Pie Chart */}
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Abonementlar bo'yicha
-                    </h3>
-                    <div className="flex flex-col items-center justify-center h-64">
-                        {pieChartData.length === 0 ? (
-                            <p className="text-gray-600">
-                                Ma'lumot mavjud emas
-                            </p>
-                        ) : (
-                            <>
-                                <div className="relative">
-                                    <svg
-                                        width="200"
-                                        height="200"
-                                        viewBox="0 0 200 200"
-                                        className="mb-4"
-                                        style={{ overflow: "visible" }}
-                                    >
-                                        {(() => {
-                                            const colors = [
-                                                "#3b82f5",
-                                                "#ff5724",
-                                                "#ef4343",
-                                                "#16a34a",
-                                            ];
-                                            let offset = 0;
-                                            return pieChartData.map(
-                                                (item, index) => {
-                                                    const percentage =
-                                                        item.percentage || 0;
-                                                    const circumference = 502.4;
-                                                    const dasharray =
-                                                        (percentage / 100) *
-                                                        circumference;
-                                                    const color =
-                                                        colors[
-                                                            index %
-                                                                colors.length
-                                                        ];
-                                                    const dashoffset = -offset;
-                                                    offset += dasharray;
-                                                    const isHovered =
-                                                        hoveredSegment ===
-                                                        index;
-
-                                                    return (
-                                                        <circle
-                                                            key={index}
-                                                            cx="100"
-                                                            cy="100"
-                                                            r="80"
-                                                            fill="none"
-                                                            stroke={color}
-                                                            strokeWidth={
-                                                                isHovered
-                                                                    ? "45"
-                                                                    : "40"
-                                                            }
-                                                            strokeDasharray={`${dasharray} ${circumference}`}
-                                                            strokeDashoffset={
-                                                                dashoffset
-                                                            }
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            transform="rotate(-90 100 100)"
-                                                            style={{
-                                                                cursor: "pointer",
-                                                                transition:
-                                                                    "stroke-width 0.2s",
-                                                                opacity:
-                                                                    hoveredSegment ===
-                                                                        null ||
-                                                                    isHovered
-                                                                        ? 1
-                                                                        : 0.7,
-                                                            }}
-                                                            onMouseEnter={() =>
-                                                                setHoveredSegment(
-                                                                    index
-                                                                )
-                                                            }
-                                                            onMouseLeave={() =>
-                                                                setHoveredSegment(
-                                                                    null
-                                                                )
-                                                            }
-                                                        />
-                                                    );
-                                                }
-                                            );
-                                        })()}
-                                    </svg>
-                                    {hoveredSegment !== null && (
-                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded text-sm font-semibold whitespace-nowrap">
-                                            {pieChartData[hoveredSegment].count}{" "}
-                                            obunalar
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex flex-wrap gap-4 justify-center">
-                                    {pieChartData.map((item, index) => {
-                                        const colors = [
-                                            "#3b82f5",
-                                            "#ff5724",
-                                            "#ef4343",
-                                            "#16a34a",
-                                        ];
-                                        const color =
-                                            colors[index % colors.length];
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="flex items-center gap-2 cursor-pointer"
-                                                onMouseEnter={() =>
-                                                    setHoveredSegment(index)
-                                                }
-                                                onMouseLeave={() =>
-                                                    setHoveredSegment(null)
-                                                }
-                                            >
-                                                <div
-                                                    className="w-4 h-4 rounded"
-                                                    style={{
-                                                        backgroundColor: color,
-                                                    }}
-                                                />
-                                                <span className="text-sm text-gray-700">
-                                                    {item.type}{" "}
-                                                    {item.percentage}%
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
             </div>
-
-            {/* Recent Users Table */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">

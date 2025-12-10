@@ -32,4 +32,14 @@ export const dashboardAPI = {
             throw error;
         }
     },
+
+    getPaymentHistory: async () => {
+        try {
+            const response = await client.get("/dashboard/payments/history");
+            return response.data;
+        } catch (error) {
+            console.error("Get payment history error:", error);
+            throw error;
+        }
+    },
 };

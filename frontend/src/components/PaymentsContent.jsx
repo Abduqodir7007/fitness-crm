@@ -1,48 +1,48 @@
-export default function PaymentsContent() {
-    const payments = [
-        {
-            id: 1,
-            client: "Ali Valiyev",
-            amount: "150,000",
-            date: "2024-11-28",
-            plan: "Standart",
-            status: "Qabul qilindi",
-        },
-        {
-            id: 2,
-            client: "Nodira Qodir",
-            amount: "300,000",
-            date: "2024-11-28",
-            plan: "Premium",
-            status: "Qabul qilindi",
-        },
-        {
-            id: 3,
-            client: "Javohir Xo'jayev",
-            amount: "500,000",
-            date: "2024-11-27",
-            plan: "VIP",
-            status: "Kutilmoqda",
-        },
-        {
-            id: 4,
-            client: "Malika Rahimova",
-            amount: "150,000",
-            date: "2024-11-27",
-            plan: "Standart",
-            status: "Qabul qilindi",
-        },
-        {
-            id: 5,
-            client: "Sardor Umarov",
-            amount: "400,000",
-            date: "2024-11-26",
-            plan: "Oyliq",
-            status: "Rad etildi",
-        },
-    ];
+import { useState, useEffect } from "react";
+import { dashboardAPI } from "../api/dashboard";
 
-    const totalRevenue = "1,850,000 so'm";
+export default function PaymentsContent() {
+    const [payments, setPayments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetchPaymentHistory();
+    }, []);
+
+    const fetchPaymentHistory = async () => {
+        setLoading(true);
+        try {
+            const data = await dashboardAPI.getPaymentHistory();
+            setPayments(data);
+        } catch (err) {
+            console.error("Error fetching payment history:", err);
+            setError("To'lovlar tarixini yuklashda xato");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Format date to Uzbek locale
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("uz-UZ", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        });
+    };
+
+    // Format currency
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat("uz-UZ").format(amount);
+    };
+
+    const totalRevenue =
+        payments.length > 0
+            ? formatCurrency(payments.reduce((sum, p) => sum + p.amount, 0)) +
+              " so'm"
+            : "0 so'm";
     const todayPayments = "450,000 so'm";
 
     return (
@@ -85,63 +85,55 @@ export default function PaymentsContent() {
                     </h3>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Mijoz
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Summa
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Sana
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Plan
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {payments.map((payment) => (
-                                <tr
-                                    key={payment.id}
-                                    className="hover:bg-gray-50"
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {payment.client}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                        {payment.amount}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {payment.date}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {payment.plan}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                payment.status ===
-                                                "Qabul qilindi"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : payment.status ===
-                                                      "Kutilmoqda"
-                                                    ? "bg-yellow-100 text-yellow-800"
-                                                    : "bg-red-100 text-red-800"
-                                            }`}
-                                        >
-                                            {payment.status}
-                                        </span>
-                                    </td>
+                    {loading ? (
+                        <div className="p-8 text-center text-gray-600">
+                            To'lovlar yuklanmoqda...
+                        </div>
+                    ) : error ? (
+                        <div className="p-8 text-center text-red-600">
+                            {error}
+                        </div>
+                    ) : payments.length === 0 ? (
+                        <div className="p-8 text-center text-gray-600">
+                            To'lov topilmadi
+                        </div>
+                    ) : (
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Mijoz
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Summa
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Sana
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {payments.map((payment, index) => (
+                                    <tr
+                                        key={index}
+                                        className="hover:bg-gray-50"
+                                    >
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {payment.user.first_name}{" "}
+                                            {payment.user.last_name}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                            {formatCurrency(payment.amount)}{" "}
+                                            so'm
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {formatDate(payment.payment_date)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
         </div>

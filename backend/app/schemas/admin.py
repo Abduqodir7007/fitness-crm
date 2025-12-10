@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
-
+from datetime import date
 
 class PaymentMethod(str, Enum):
     CREDIT_CARD = "card"
@@ -32,3 +32,12 @@ class DailySubscriptionCreate(BaseModel):
 
     class Config:
         from_attributes = True
+     
+class UserResponse(BaseModel): 
+    first_name: str
+    last_name: str  
+class PaymentResponse(BaseModel):
+    user: UserResponse
+    amount: int
+    payment_date: date
+    

@@ -1,8 +1,15 @@
+import json
 from datetime import timedelta, date
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from ..dependancy import get_superuser
+from ..config import settings
 from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from ..schemas.admin import PaymentResponse
+from sqlalchemy import and_, func
+from sqlalchemy.orm import selectinload
+from sqlalchemy.future import select
+from ..rate_limiter import  redis
 from ..models import (
     Users,
     Attendance,
@@ -11,9 +18,6 @@ from ..models import (
     Payment,
     DailySubscriptions,
 )
-from sqlalchemy import and_, func
-from sqlalchemy.orm import selectinload
-from sqlalchemy.future import select
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -61,6 +65,13 @@ async def get_dashboard_stats(
 async def get_subscription_stats(
     db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
 ):
+    
+    cached_data = await redis.get(settings.CACHE_KEY)
+    if cached_data:
+        print("Serving from cache")
+        return json.loads(cached_data)
+        
+    
     response = []
 
     result1 = await db.execute(
@@ -90,7 +101,7 @@ async def get_subscription_stats(
             "total_active_subscriptions": total_active_subscriptions,
         }
     )
-
+    await redis.set(settings.CACHE_KEY, json.dumps(response), ex=60*60)  # cached for 1 hour
     return response
 
 
@@ -162,3 +173,15 @@ async def get_ended_subscriptions(db: AsyncSession = Depends(get_db)):
         )
 
     return response
+
+@router.get("/payments/history", status_code=status.HTTP_200_OK,response_model=list[PaymentResponse])
+async def get_payment_history(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Payment)
+        .options(selectinload(Payment.user))
+        .order_by(Payment.payment_date.desc())
+        .limit(5)
+    )
+    payments = result.scalars().all()
+    
+    return payments
