@@ -1,5 +1,6 @@
-import json
-from datetime import timedelta, date
+import json, calendar
+from datetime import timedelta, date, datetime
+from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends, status
 from ..dependancy import get_superuser
 from ..config import settings
@@ -121,7 +122,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
 
     weekly_clients = None
     try:
-        weekly_clients = await redis.get("weekly_clients")
+        weekly_clients = await redis.get(settings.CACHE_KEY)
     except Exception as e:
         print(f"Redis get error: {e}")
 
@@ -148,7 +149,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
 
     try:
         await redis.set(
-            "weekly_clients", json.dumps(weekly_clients_list), ex=60 * 60 * 2
+            settings.CACHE_KEY, json.dumps(weekly_clients_list), ex=60 * 60 * 2
         )
     except Exception as e:
         print(f"Redis set error: {e}")
@@ -156,6 +157,36 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
     response["weekly_clients"] = weekly_clients_list
 
     return response
+
+
+@router.get("/monthly/payment")
+async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
+
+    today = date.today()
+    start_date = today.replace(day=1) - relativedelta(months=5)
+    end_date = today.replace(day=1) - relativedelta(days=1)
+    
+
+    result = await db.execute(
+        select(Payment)
+        .where(Payment.payment_date.between(start_date, end_date))
+        .order_by(Payment.payment_date)
+    )
+
+    payments = result.scalars().all()
+
+    monthly_profit = {}
+    for payment in payments:
+        month_name = payment.payment_date.strftime("%B")
+        if month_name not in monthly_profit:
+            monthly_profit[month_name] = 0
+        monthly_profit[month_name] += payment.amount or 0
+
+    sorted_months = sorted(monthly_profit.items())
+    
+    response = [{"month": month, "profit": profit} for month, profit in sorted_months]
+    print(response)
+    return response 
 
 
 @router.get("/notifications")

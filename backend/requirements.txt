@@ -14,3 +14,4 @@ aiofiles #  remove if you do not use file uploads
 alembic
 psycopg2-binary 
 redis
+python-dateutil

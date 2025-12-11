@@ -42,4 +42,14 @@ export const dashboardAPI = {
             throw error;
         }
     },
+
+    getMonthlyPayment: async () => {
+        try {
+            const response = await client.get("/dashboard/monthly/payment");
+            return response.data;
+        } catch (error) {
+            console.error("Get monthly payment error:", error);
+            throw error;
+        }
+    },
 };

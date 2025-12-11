@@ -62,6 +62,7 @@ export default function DashboardContent() {
     const [pieChartData, setPieChartData] = useState([]);
     const [hoveredSegment, setHoveredSegment] = useState(null);
     const [hoveredLinePoint, setHoveredLinePoint] = useState(null);
+    const [hoveredBar, setHoveredBar] = useState(null);
     const [dailyClientsData, setDailyClientsData] = useState([
         { day: "Dushanba", count: 45 },
         { day: "Seshanba", count: 52 },
@@ -71,6 +72,17 @@ export default function DashboardContent() {
         { day: "Shanba", count: 67 },
         { day: "Yakshanba", count: 58 },
     ]);
+
+    const [monthlyData, setMonthlyData] = useState([
+        { month: "Yan", profit: 3200000 },
+        { month: "Fev", profit: 3900000 },
+        { month: "Mar", profit: 4500000 },
+    ]);
+
+    // Log when dailyClientsData changes
+    useEffect(() => {
+        console.log("dailyClientsData updated:", dailyClientsData);
+    }, [dailyClientsData]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -97,11 +109,12 @@ export default function DashboardContent() {
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
-            const [userStatsRes, subStatsRes, dailyStatsRes] =
+            const [userStatsRes, subStatsRes, dailyStatsRes, monthlyStatsRes] =
                 await Promise.all([
                     dashboardAPI.getUserStats(),
                     dashboardAPI.getSubscriptionStats(),
                     dashboardAPI.getDailyStats(),
+                    dashboardAPI.getMonthlyPayment(),
                 ]);
 
             // Merge the responses
@@ -136,9 +149,21 @@ export default function DashboardContent() {
             setPieChartData(pieChartItems);
 
             // Update line graph data with weekly clients
+            let weeklyClients = dailyData.weekly_clients;
+
+            // If weeklyClients is the entire response object again, we need to get it correctly
             if (
-                dailyData.weekly_clients &&
-                dailyData.weekly_clients.length > 0
+                weeklyClients &&
+                typeof weeklyClients === "object" &&
+                weeklyClients.weekly_clients
+            ) {
+                weeklyClients = weeklyClients.weekly_clients;
+            }
+
+            if (
+                weeklyClients &&
+                Array.isArray(weeklyClients) &&
+                weeklyClients.length > 0
             ) {
                 // Convert English day names to Uzbek
                 const dayMap = {
@@ -150,11 +175,49 @@ export default function DashboardContent() {
                     Saturday: "Shanba",
                     Sunday: "Yakshanba",
                 };
-                const convertedData = dailyData.weekly_clients.map((item) => ({
-                    day: dayMap[item.day] || item.day,
-                    count: item.count || 0,
-                }));
+                const convertedData = weeklyClients.map((item) => {
+                    const mappedDay = dayMap[item.day] || item.day;
+                    return {
+                        day: mappedDay,
+                        count: item.count || 0,
+                    };
+                });
                 setDailyClientsData(convertedData);
+            }
+
+            // Process monthly data
+            console.log("monthlyStatsRes:", monthlyStatsRes);
+            if (
+                monthlyStatsRes &&
+                Array.isArray(monthlyStatsRes) &&
+                monthlyStatsRes.length > 0
+            ) {
+                const monthNameMap = {
+                    January: "Yan",
+                    February: "Fev",
+                    March: "Mar",
+                    April: "Apr",
+                    May: "May",
+                    June: "Iyun",
+                    July: "Iyul",
+                    August: "Avg",
+                    September: "Sen",
+                    October: "Okt",
+                    November: "Noy",
+                    December: "Dek",
+                };
+
+                const processedMonthly = monthlyStatsRes.map((item) => ({
+                    month: monthNameMap[item.month] || item.month,
+                    profit: item.profit || 0,
+                }));
+                console.log("processedMonthly:", processedMonthly);
+                setMonthlyData(processedMonthly);
+            } else {
+                console.log(
+                    "monthlyStatsRes is not an array, empty, or has no data"
+                );
+                console.log("Keeping default monthlyData");
             }
         } catch (err) {
             console.error("Error fetching dashboard data:", err);
@@ -753,36 +816,48 @@ export default function DashboardContent() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Oylik daromad
                     </h3>
-                    <div className="h-64 flex items-end justify-between px-2">
-                        {[
-                            { month: "Yan", value: 3200000 },
-                            { month: "Fev", value: 3900000 },
-                            { month: "Mar", value: 4500000 },
-                            { month: "Apr", value: 4100000 },
-                            { month: "May", value: 5000000 },
-                            { month: "Iyun", value: 4800000 },
-                            { month: "Iyul", value: 5200000 },
-                            { month: "Avg", value: 5900000 },
-                            { month: "Sen", value: 5800000 },
-                            { month: "Okt", value: 5700000 },
-                        ].map((item) => (
-                            <div
-                                key={item.month}
-                                className="flex flex-col items-center"
-                            >
+                    <div className="h-64 flex items-end justify-between px-2 relative">
+                        {monthlyData.map((item, index) => {
+                            const maxProfit = Math.max(
+                                ...monthlyData.map((d) => d.profit)
+                            );
+                            const isHovered = hoveredBar === index;
+                            return (
                                 <div
-                                    className="w-8 bg-gradient-to-t from-red-400 to-red-300 rounded-t opacity-80 hover:opacity-100 transition"
-                                    style={{
-                                        height: `${
-                                            (item.value / 6000000) * 200
-                                        }px`,
-                                    }}
-                                />
-                                <span className="text-xs text-gray-600 mt-2">
-                                    {item.month}
-                                </span>
-                            </div>
-                        ))}
+                                    key={item.month}
+                                    className="flex flex-col items-center relative group"
+                                    onMouseEnter={() => setHoveredBar(index)}
+                                    onMouseLeave={() => setHoveredBar(null)}
+                                >
+                                    <div
+                                        className={`w-8 bg-gradient-to-t from-red-400 to-red-300 rounded-t transition ${
+                                            isHovered
+                                                ? "opacity-100 shadow-lg"
+                                                : "opacity-80 hover:opacity-100"
+                                        }`}
+                                        style={{
+                                            height: `${
+                                                maxProfit > 0
+                                                    ? (item.profit /
+                                                          maxProfit) *
+                                                      200
+                                                    : 0
+                                            }px`,
+                                        }}
+                                    />
+                                    {isHovered && (
+                                        <div className="absolute bottom-full mb-2 bg-gray-900 text-white px-3 py-2 rounded text-sm font-semibold whitespace-nowrap">
+                                            {item.profit.toLocaleString(
+                                                "uz-UZ"
+                                            )}
+                                        </div>
+                                    )}
+                                    <span className="text-xs text-gray-600 mt-2">
+                                        {item.month}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
