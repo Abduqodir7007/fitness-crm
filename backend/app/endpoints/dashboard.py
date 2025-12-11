@@ -1,7 +1,7 @@
 import json, calendar
 from datetime import timedelta, date, datetime
 from dateutil.relativedelta import relativedelta
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from ..dependancy import get_superuser
 from ..config import settings
 from ..database import get_db
@@ -124,7 +124,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
     try:
         weekly_clients = await redis.get(settings.CACHE_KEY)
     except Exception as e:
-        print(f"Redis get error: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
 
     if weekly_clients:
         response["weekly_clients"] = json.loads(weekly_clients)
@@ -152,7 +152,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
             settings.CACHE_KEY, json.dumps(weekly_clients_list), ex=60 * 60 * 2
         )
     except Exception as e:
-        print(f"Redis set error: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
 
     response["weekly_clients"] = weekly_clients_list
 
@@ -165,7 +165,6 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
     today = date.today()
     start_date = today.replace(day=1) - relativedelta(months=5)
     end_date = today.replace(day=1) - relativedelta(days=1)
-    
 
     result = await db.execute(
         select(Payment)
@@ -183,10 +182,10 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
         monthly_profit[month_name] += payment.amount or 0
 
     sorted_months = sorted(monthly_profit.items())
-    
+
     response = [{"month": month, "profit": profit} for month, profit in sorted_months]
-    print(response)
-    return response 
+
+    return response
 
 
 @router.get("/notifications")
