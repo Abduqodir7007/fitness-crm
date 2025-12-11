@@ -9,7 +9,7 @@ from ..schemas.admin import PaymentResponse
 from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
-from ..rate_limiter import  redis
+from ..rate_limiter import redis
 from ..models import (
     Users,
     Attendance,
@@ -21,10 +21,9 @@ from ..models import (
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
+
 # number of active users, number of trainers, today's attendance
-@router.get(
-    "/user-stats", status_code=status.HTTP_200_OK
-)  
+@router.get("/user-stats", status_code=status.HTTP_200_OK)
 async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
 ):
@@ -65,13 +64,7 @@ async def get_dashboard_stats(
 async def get_subscription_stats(
     db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
 ):
-    
-    cached_data = await redis.get(settings.CACHE_KEY)
-    if cached_data:
-        print("Serving from cache")
-        return json.loads(cached_data)
-        
-    
+
     response = []
 
     result1 = await db.execute(
@@ -101,14 +94,13 @@ async def get_subscription_stats(
             "total_active_subscriptions": total_active_subscriptions,
         }
     )
-    await redis.set(settings.CACHE_KEY, json.dumps(response), ex=60*60)  # cached for 1 hour
     return response
 
 
 # total profit for a day, daily clients, weekly clients
-# TO DO: cache the response for 10 minustes
 @router.get("/subscription/payment")
 async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
+
     result1 = await db.execute(
         select(func.sum(Payment.amount)).where(Payment.payment_date == date.today())
     )
@@ -118,6 +110,24 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
             DailySubscriptions.subscription_date == date.today()
         )
     )
+
+    daily_visits = result2.scalars().first()
+    daily_profit = result1.scalars().first()
+
+    response = {
+        "daily_profit": daily_profit or 0,
+        "daily_clients": daily_visits or 0,
+    }
+
+    weekly_clients = None
+    try:
+        weekly_clients = await redis.get("weekly_clients")
+    except Exception as e:
+        print(f"Redis get error: {e}")
+
+    if weekly_clients:
+        response["weekly_clients"] = json.loads(weekly_clients)
+        return response
 
     start_date = date.today() - timedelta(days=7)
     end_date = date.today() - timedelta(days=1)
@@ -130,19 +140,21 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
 
     weekly_visits = result3.scalars().all()
     length = len(weekly_visits)
-    weekly_clients = []
+    weekly_clients_list = []
+
     for i in range(length):
         day = (date.today() - timedelta(days=length - i)).strftime("%A")
-        weekly_clients.append({"day": day, "count": weekly_visits[i]})
+        weekly_clients_list.append({"day": day, "count": weekly_visits[i]})
 
-    daily_visits = result2.scalars().first()
-    daily_profit = result1.scalars().first()
+    try:
+        await redis.set(
+            "weekly_clients", json.dumps(weekly_clients_list), ex=60 * 60 * 2
+        )
+    except Exception as e:
+        print(f"Redis set error: {e}")
 
-    response = {
-        "weekly_clients": weekly_clients,
-        "daily_profit": daily_profit or 0,
-        "daily_clients": daily_visits or 0,
-    }
+    response["weekly_clients"] = weekly_clients_list
+
     return response
 
 
@@ -174,7 +186,12 @@ async def get_ended_subscriptions(db: AsyncSession = Depends(get_db)):
 
     return response
 
-@router.get("/payments/history", status_code=status.HTTP_200_OK,response_model=list[PaymentResponse])
+
+@router.get(
+    "/payments/history",
+    status_code=status.HTTP_200_OK,
+    response_model=list[PaymentResponse],
+)
 async def get_payment_history(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Payment)
@@ -183,5 +200,5 @@ async def get_payment_history(db: AsyncSession = Depends(get_db)):
         .limit(5)
     )
     payments = result.scalars().all()
-    
+
     return payments
