@@ -11,5 +11,24 @@ export default defineConfig({
                 changeOrigin: true,
             },
         },
+        middlewareMode: false,
+    },
+    build: {
+        target: "esnext",
+        minify: "terser",
+        terserOptions: {
+            compress: {
+                drop_console: true,
+            },
+        },
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    "react-vendor": ["react", "react-dom", "react-router-dom"],
+                    "axios-vendor": ["axios"],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 1000,
     },
 });

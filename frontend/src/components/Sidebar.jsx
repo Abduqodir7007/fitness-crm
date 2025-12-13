@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+const Sidebar = memo(function Sidebar({ activeTab, setActiveTab }) {
     const navigate = useNavigate();
 
     const menuItems = [
@@ -99,4 +99,6 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             </div>
         </div>
     );
-}
+});
+
+export default Sidebar;

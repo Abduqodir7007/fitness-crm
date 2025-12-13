@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 
-export default function AddUserModal({ isOpen, onClose, onSubmit }) {
+const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
@@ -12,13 +12,13 @@ export default function AddUserModal({ isOpen, onClose, onSubmit }) {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
             [name]: value,
         }));
-    };
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -202,4 +202,6 @@ export default function AddUserModal({ isOpen, onClose, onSubmit }) {
             </div>
         </div>
     );
-}
+});
+
+export default AddUserModal;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import AddUserModal from "./AddUserModal";
 import SubscriptionModal from "./SubscriptionModal";
 import DailySubscriptionModal from "./DailySubscriptionModal";
@@ -6,7 +6,7 @@ import { dashboardAPI } from "../api/dashboard";
 import { authAPI } from "../api/auth";
 import { subscriptionAPI } from "../api/subscription";
 
-export default function DashboardContent() {
+const DashboardContent = memo(function DashboardContent() {
     const [stats, setStats] = useState([
         {
             label: "Jami Mijozlar",
@@ -63,26 +63,8 @@ export default function DashboardContent() {
     const [hoveredSegment, setHoveredSegment] = useState(null);
     const [hoveredLinePoint, setHoveredLinePoint] = useState(null);
     const [hoveredBar, setHoveredBar] = useState(null);
-    const [dailyClientsData, setDailyClientsData] = useState([
-        { day: "Dushanba", count: 45 },
-        { day: "Seshanba", count: 52 },
-        { day: "Chorshanba", count: 48 },
-        { day: "Payshanba", count: 61 },
-        { day: "Juma", count: 55 },
-        { day: "Shanba", count: 67 },
-        { day: "Yakshanba", count: 58 },
-    ]);
-
-    const [monthlyData, setMonthlyData] = useState([
-        { month: "Yan", profit: 3200000 },
-        { month: "Fev", profit: 3900000 },
-        { month: "Mar", profit: 4500000 },
-    ]);
-
-    // Log when dailyClientsData changes
-    useEffect(() => {
-        console.log("dailyClientsData updated:", dailyClientsData);
-    }, [dailyClientsData]);
+    const [dailyClientsData, setDailyClientsData] = useState([]);
+    const [monthlyData, setMonthlyData] = useState([]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -151,15 +133,6 @@ export default function DashboardContent() {
             // Update line graph data with weekly clients
             let weeklyClients = dailyData.weekly_clients;
 
-            // If weeklyClients is the entire response object again, we need to get it correctly
-            if (
-                weeklyClients &&
-                typeof weeklyClients === "object" &&
-                weeklyClients.weekly_clients
-            ) {
-                weeklyClients = weeklyClients.weekly_clients;
-            }
-
             if (
                 weeklyClients &&
                 Array.isArray(weeklyClients) &&
@@ -186,7 +159,6 @@ export default function DashboardContent() {
             }
 
             // Process monthly data
-            console.log("monthlyStatsRes:", monthlyStatsRes);
             if (
                 monthlyStatsRes &&
                 Array.isArray(monthlyStatsRes) &&
@@ -211,13 +183,7 @@ export default function DashboardContent() {
                     month: monthNameMap[item.month] || item.month,
                     profit: item.profit || 0,
                 }));
-                console.log("processedMonthly:", processedMonthly);
                 setMonthlyData(processedMonthly);
-            } else {
-                console.log(
-                    "monthlyStatsRes is not an array, empty, or has no data"
-                );
-                console.log("Keeping default monthlyData");
             }
         } catch (err) {
             console.error("Error fetching dashboard data:", err);
@@ -918,4 +884,6 @@ export default function DashboardContent() {
             </div>
         </div>
     );
-}
+});
+
+export default DashboardContent;

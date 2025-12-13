@@ -120,13 +120,10 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         "daily_clients": daily_visits or 0,
     }
 
-    weekly_clients = None
-    try:
-        weekly_clients = await redis.get(settings.CACHE_KEY)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
+    weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
 
     if weekly_clients:
+        print("Cache hit")
         response["weekly_clients"] = json.loads(weekly_clients)
         return response
 
@@ -147,20 +144,23 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         day = (date.today() - timedelta(days=length - i)).strftime("%A")
         weekly_clients_list.append({"day": day, "count": weekly_visits[i]})
 
-    try:
-        await redis.set(
-            settings.CACHE_KEY, json.dumps(weekly_clients_list), ex=60 * 60 * 2
-        )
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
-
     response["weekly_clients"] = weekly_clients_list
+
+    await redis.set(
+        settings.WEEKLY_CLIENTS, json.dumps(weekly_clients_list), ex=60 * 60 * 3
+    )
 
     return response
 
 
 @router.get("/monthly/payment")
 async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
+
+    response = await redis.get(settings.MONTHLY_PROFIT)
+
+    if response:
+        print("Cache hit")
+        return json.loads(response)
 
     today = date.today()
     start_date = today.replace(day=1) - relativedelta(months=5)
@@ -184,7 +184,7 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
     sorted_months = sorted(monthly_profit.items())
 
     response = [{"month": month, "profit": profit} for month, profit in sorted_months]
-
+    await redis.set(settings.MONTHLY_PROFIT, json.dumps(response), ex=60 * 60 * 24 * 10)
     return response
 
 
