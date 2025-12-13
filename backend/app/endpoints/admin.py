@@ -143,7 +143,7 @@ async def daily_subscriptions_assign(
         user_id=subscription.user_id,
         amount=subscription.amount,
     )
-    
+
     payment = Payment(
         user_id=subscription.user_id,
         amount=subscription.amount,

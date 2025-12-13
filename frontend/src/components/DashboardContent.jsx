@@ -66,29 +66,7 @@ const DashboardContent = memo(function DashboardContent() {
     const [dailyClientsData, setDailyClientsData] = useState([]);
     const [monthlyData, setMonthlyData] = useState([]);
 
-    useEffect(() => {
-        fetchDashboardData();
-
-        // Refresh when page regains focus (user switches tabs/windows)
-        const handleFocus = () => {
-            fetchDashboardData();
-        };
-
-        window.addEventListener("focus", handleFocus);
-        return () => window.removeEventListener("focus", handleFocus);
-    }, []);
-
-    // Auto-dismiss error after 5 seconds
-    useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => {
-                setError(null);
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [error]);
-
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         setLoading(true);
         try {
             const [userStatsRes, subStatsRes, dailyStatsRes, monthlyStatsRes] =
@@ -191,7 +169,29 @@ const DashboardContent = memo(function DashboardContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchDashboardData();
+
+        // Refresh when page regains focus (user switches tabs/windows)
+        const handleFocus = () => {
+            fetchDashboardData();
+        };
+
+        window.addEventListener("focus", handleFocus);
+        return () => window.removeEventListener("focus", handleFocus);
+    }, [fetchDashboardData]);
+
+    // Auto-dismiss error after 5 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     const recentUsers = [
         {

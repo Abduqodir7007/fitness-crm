@@ -422,9 +422,67 @@ export default function ViewUserPage() {
                         To'lovlar tarixi
                     </h3>
 
-                    <p className="text-gray-600 text-center py-8">
-                        To'lovlar tarixi ma'lumotlari yangi versiyada qo'shiladi
-                    </p>
+                    {userDetails?.payments &&
+                    userDetails.payments.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                            Sana
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                            Summa
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                            To'lov Usuli
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {userDetails.payments.map(
+                                        (payment, index) => (
+                                            <tr
+                                                key={index}
+                                                className="hover:bg-gray-50"
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {formatDate(
+                                                        payment.payment_date
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                                    {payment.amount?.toLocaleString(
+                                                        "uz-UZ"
+                                                    ) || 0}{" "}
+                                                    so'm
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <span
+                                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                            payment.payment_method ===
+                                                            "cash"
+                                                                ? "bg-green-100 text-green-800"
+                                                                : "bg-blue-100 text-blue-800"
+                                                        }`}
+                                                    >
+                                                        {payment.payment_method ===
+                                                        "cash"
+                                                            ? "Naqd"
+                                                            : "Karta"}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-gray-600 text-center py-8">
+                            To'lovlar tarixi yo'q
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

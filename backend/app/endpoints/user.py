@@ -3,7 +3,7 @@ from ..database import get_db
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas.users import UserListResponse, UserResponse
-from ..models import Users, Subscriptions
+from ..models import Users, Subscriptions, Payment
 from sqlalchemy.future import select
 from ..websocket import manager
 from ..utils import is_subscription_active
@@ -29,7 +29,7 @@ async def get_all_users(
     db: AsyncSession = Depends(get_db),
 ):
 
-    query = select(Users)
+    query = select(Users).where(and_(Users.role == "client"))
 
     if active_sub:
         query = query.join(Users.subscriptions).where(
@@ -74,10 +74,14 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
 async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Users)
-        .options(selectinload(Users.subscriptions).selectinload(Subscriptions.plan))
+        .options(
+            selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
+            selectinload(Users.payments),
+        )
         .where(Users.id == user_id)
     )
     user = result.scalars().first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -90,6 +94,14 @@ async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
         "phone_number": user.phone_number,
         "date_of_birth": user.date_of_birth,
         "gender": user.gender,
+        "payments": [
+            {
+                "amount": pay.amount,
+                "payment_date": pay.payment_date,
+                "payment_method": pay.payment_method,
+            }
+            for pay in user.payments
+        ],
         "subscriptions": [
             {
                 "start_date": sub.start_date,
@@ -105,6 +117,7 @@ async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
             for sub in user.subscriptions
         ],
     }
+
     return response
 
 
