@@ -15,13 +15,20 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            await authAPI.login(phone_number, password);
-            navigate("/dashboard");
+            const response = await authAPI.login(phone_number, password);
+
+            // Redirect based on role
+            if (response.role === "admin") {
+                navigate("/dashboard");
+            } else if (response.role === "client") {
+                navigate("/attendance");
+            } else if (response.role === "trainer") {
+                navigate("/trainer-dashboard");
+            }
         } catch (err) {
             setError(
                 err.response?.data?.detail || "Login failed. Please try again."
             );
-            console.error("Login error:", err);
         } finally {
             setLoading(false);
         }

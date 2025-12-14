@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import ViewUserPage from "./pages/ViewUserPage";
+import ClientAttendancePage from "./pages/ClientAttendancePage";
 
 function App() {
     return (
@@ -11,6 +12,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/dashboard/:tab" element={<DashboardPage />} />
             <Route path="/user/:userId" element={<ViewUserPage />} />
+            <Route path="/attendance" element={<ClientAttendancePage />} />
         </Routes>
     );
 }

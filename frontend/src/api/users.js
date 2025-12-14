@@ -52,4 +52,24 @@ export const usersAPI = {
             throw error;
         }
     },
+
+    getCurrentUser: async () => {
+        try {
+            const response = await client.get("/users/me");
+            return response.data;
+        } catch (error) {
+            console.error("Get current user error:", error);
+            throw error;
+        }
+    },
+
+    markAttendance: async () => {
+        try {
+            const response = await client.post("/users/attendance");
+            return response.data;
+        } catch (error) {
+            console.error("Mark attendance error:", error);
+            throw error;
+        }
+    },
 };
