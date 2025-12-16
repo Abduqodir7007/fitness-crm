@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from uuid import UUID
+from pydantic import BaseModel, field_serializer
 from enum import Enum
 from datetime import date
+
 
 class PaymentMethod(str, Enum):
     CREDIT_CARD = "card"
@@ -25,6 +27,17 @@ class SubscriptionCreate(BaseModel):
         from_attributes = True
 
 
+class SubscriptionResponse(BaseModel):
+    id: UUID
+    type: str
+    price: int
+    duration_days: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
 class DailySubscriptionCreate(BaseModel):
     user_id: str
     amount: int
@@ -32,12 +45,14 @@ class DailySubscriptionCreate(BaseModel):
 
     class Config:
         from_attributes = True
-     
-class UserResponse(BaseModel): 
+
+
+class UserResponse(BaseModel):
     first_name: str
-    last_name: str  
+    last_name: str
+
+
 class PaymentResponse(BaseModel):
     user: UserResponse
     amount: int
     payment_date: date
-    

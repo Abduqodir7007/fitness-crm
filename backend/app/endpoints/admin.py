@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..dependancy import get_superuser
-from ..database import get_db
 from sqlalchemy import select, func
 from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..dependancy import get_superuser
+from ..database import get_db
 from ..models import (
     SubscriptionPlans,
     Subscriptions,
@@ -14,6 +15,7 @@ from ..schemas.admin import (
     SubscriptionPlanCreate,
     SubscriptionCreate,
     DailySubscriptionCreate,
+    SubscriptionResponse,
 )
 from ..utils import is_subscription_active
 
@@ -40,7 +42,7 @@ async def create_subscription_plan(
     return new_plan
 
 
-@router.get("/subscription_plans")
+@router.get("/subscription_plans", response_model=list[SubscriptionResponse])
 async def get_subscription_plans(
     db: AsyncSession = Depends(get_db),
 ):
@@ -48,6 +50,7 @@ async def get_subscription_plans(
         select(SubscriptionPlans).where(SubscriptionPlans.is_active == True)
     )
     plans = result.scalars().all()
+
     return plans
 
 
@@ -68,6 +71,30 @@ async def deactivate_subscription_plan(
     db.add(plan)
     await db.commit()
     return {"message": "Subscription plan deactivated successfully"}
+
+
+@router.put("/subscription_plan/update/{plan_id}", status_code=status.HTTP_200_OK)
+async def update_subscription_plan(
+    plan_id: str,
+    subscription: SubscriptionPlanCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
+    )
+    plan = result.scalars().first()
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Subscription plan not found",
+        )
+    print(plan.id,plan.type)
+    plan.type = subscription.name
+    plan.price = subscription.price
+    plan.duration_days = subscription.duration_days
+    db.add(plan)
+    await db.commit()
+    return {"message": "Subscription plan updated successfully"}
 
 
 @router.delete("/subscription_plans/{plan_id}", status_code=status.HTTP_200_OK)

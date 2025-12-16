@@ -47,10 +47,11 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(Users).where(Users.phone_number == user_in.phone_number)
+        select(Users).where(Users.phone_number == user_in.phone_number.strip())
     )
     user = result.scalars().first()
 
+    print(user)
     if user and await verify_password(user_in.password, user.hashed_password):
         token = await create_access_token(
             {"phone_number": user.phone_number, "role": user.role}

@@ -1,15 +1,18 @@
-import json, calendar
-from datetime import timedelta, date, datetime
+import json
+from datetime import timedelta, date
 from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..dependancy import get_superuser
-from ..config import settings
-from ..database import get_db
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..schemas.admin import PaymentResponse
 from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
+
+from ..utils import fetch_profit_from_db
+from ..dependancy import get_superuser
+from ..config import settings
+from ..database import get_db
+from ..schemas.admin import PaymentResponse
 from ..rate_limiter import redis
 from ..models import (
     Users,
@@ -120,12 +123,11 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         "daily_clients": daily_visits or 0,
     }
 
-   # weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
+    weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
 
     # if weekly_clients:
     #     print("Cache hit")
     #     response["weekly_clients"] = json.loads(weekly_clients)
-    #     print(response)
     #     return response
 
     start_date = date.today() - timedelta(days=7)
@@ -147,11 +149,12 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
 
     for i in range(7):
         day = (date.today() - timedelta(days=7 - i)).strftime("%A")
-        weekly_clients_list.append({"day": day, "count": weekly_visits[i]['count'] if i < length else 0})
-        
+        weekly_clients_list.append(
+            {"day": day, "count": weekly_visits[i]["count"] if i < length else 0}
+        )
+
     response["weekly_clients"] = weekly_clients_list
 
-    # print(response)
     # await redis.set(
     #     settings.WEEKLY_CLIENTS,
     #     json.dumps(weekly_clients_list),
@@ -242,3 +245,16 @@ async def get_payment_history(db: AsyncSession = Depends(get_db)):
     payments = result.scalars().all()
 
     return payments
+
+
+@router.get("/profit")
+async def get_profit(db: AsyncSession = Depends(get_db)):
+    daily_profit = await fetch_profit_from_db(date.today(), date.today(), db)
+    # weekly_profit = await fetch_profit_from_db() TO DO
+
+    monthly_profit = await fetch_profit_from_db(
+        date.today().replace(day=1), date.today(), db
+    )
+    response = {"daily_profit": daily_profit, "monthly_profit": monthly_profit}
+    
+    return response
