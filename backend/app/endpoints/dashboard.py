@@ -120,35 +120,43 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         "daily_clients": daily_visits or 0,
     }
 
-    weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
+   # weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
 
-    if weekly_clients:
-        print("Cache hit")
-        response["weekly_clients"] = json.loads(weekly_clients)
-        return response
+    # if weekly_clients:
+    #     print("Cache hit")
+    #     response["weekly_clients"] = json.loads(weekly_clients)
+    #     print(response)
+    #     return response
 
     start_date = date.today() - timedelta(days=7)
     end_date = date.today() - timedelta(days=1)
 
     result3 = await db.execute(
-        select(func.count(DailySubscriptions.id))
+        select(
+            func.date(DailySubscriptions.subscription_date),
+            func.count(DailySubscriptions.id),
+        )
         .where(DailySubscriptions.subscription_date.between(start_date, end_date))
         .group_by(func.date(DailySubscriptions.subscription_date))
     )
 
-    weekly_visits = result3.scalars().all()
+    weekly_visits = result3.mappings().all()
+
     length = len(weekly_visits)
     weekly_clients_list = []
 
-    for i in range(length):
-        day = (date.today() - timedelta(days=length - i)).strftime("%A")
-        weekly_clients_list.append({"day": day, "count": weekly_visits[i]})
-
+    for i in range(7):
+        day = (date.today() - timedelta(days=7 - i)).strftime("%A")
+        weekly_clients_list.append({"day": day, "count": weekly_visits[i]['count'] if i < length else 0})
+        
     response["weekly_clients"] = weekly_clients_list
 
-    await redis.set(
-        settings.WEEKLY_CLIENTS, json.dumps(weekly_clients_list), ex=60 * 60 * 3 # cached for 3 hours
-    )
+    # print(response)
+    # await redis.set(
+    #     settings.WEEKLY_CLIENTS,
+    #     json.dumps(weekly_clients_list),
+    #     ex=60 * 60 * 3,  # cached for 3 hours
+    # )
 
     return response
 
@@ -159,7 +167,7 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
     response = await redis.get(settings.MONTHLY_PROFIT)
 
     if response:
-        print("Cache hit")
+        # print("Cache hit")
         return json.loads(response)
 
     today = date.today()
@@ -184,7 +192,9 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
     sorted_months = sorted(monthly_profit.items())
 
     response = [{"month": month, "profit": profit} for month, profit in sorted_months]
-    await redis.set(settings.MONTHLY_PROFIT, json.dumps(response), ex=60 * 60 * 24 * 10) # cached for 10 days
+    await redis.set(
+        settings.MONTHLY_PROFIT, json.dumps(response), ex=60 * 60 * 24 * 10
+    )  # cached for 10 days
     return response
 
 
