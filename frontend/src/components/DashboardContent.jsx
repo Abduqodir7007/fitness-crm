@@ -256,7 +256,8 @@ const DashboardContent = memo(function DashboardContent() {
             await subscriptionAPI.create(
                 formData.userId,
                 formData.planId,
-                formData.paymentMethod
+                formData.paymentMethod,
+                formData.trainerId
             );
             setIsSubscriptionModalOpen(false);
             // Refresh stats after adding subscription

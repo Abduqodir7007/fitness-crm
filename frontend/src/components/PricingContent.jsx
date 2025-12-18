@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import AddPricingModal from "./AddPricingModal";
+import EditPricingModal from "./EditPricingModal";
 import { pricingAPI } from "../api/pricing";
 
 export default function PricingContent() {
     const [plans, setPlans] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -38,6 +41,30 @@ export default function PricingContent() {
             setIsModalOpen(false);
         } catch (err) {
             console.error("Error adding plan:", err);
+            throw err;
+        }
+    };
+
+    const handleEditPlan = (plan) => {
+        setSelectedPlan(plan);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdatePlan = async (planId, formData) => {
+        try {
+            await pricingAPI.update(
+                planId,
+                formData.name,
+                formData.price,
+                formData.duration_days
+            );
+            // Refresh plans list
+            await fetchPlans();
+            setIsEditModalOpen(false);
+            setSelectedPlan(null);
+        } catch (err) {
+            console.error("Error updating plan:", err);
+            setError("Tarifni yangilashda xato");
             throw err;
         }
     };
@@ -99,6 +126,17 @@ export default function PricingContent() {
                 onSubmit={handleAddPlan}
             />
 
+            {/* Edit Pricing Modal */}
+            <EditPricingModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedPlan(null);
+                }}
+                onSubmit={handleUpdatePlan}
+                plan={selectedPlan}
+            />
+
             {/* Error State */}
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -134,7 +172,7 @@ export default function PricingContent() {
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-900">
-                                        {plan.name}
+                                        {plan.type}
                                     </h3>
                                     <p className="text-sm text-gray-600">
                                         {formatDuration(plan.duration_days)}
@@ -155,7 +193,10 @@ export default function PricingContent() {
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition text-sm">
+                                <button
+                                    onClick={() => handleEditPlan(plan)}
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition text-sm"
+                                >
                                     ✏️ Tahrirlash
                                 </button>
                                 <button

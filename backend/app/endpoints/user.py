@@ -49,6 +49,15 @@ async def get_all_users(
     return users
 
 
+@router.get(
+    "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
+)
+async def get_trainers(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Users).where(Users.role == "trainer"))
+    trainers = result.scalars().all()
+    return trainers
+
+
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
 async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
@@ -119,6 +128,36 @@ async def get_current_user_info(
             }
             for sub in user.subscriptions
         ],
+    }
+
+    return response
+
+
+@router.get("/trainer/", status_code=status.HTTP_200_OK)
+async def get_trainer_info(
+    user: Users = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
+
+    result = await db.execute(select(Users).where(Users.id == user.id))
+    trainer = result.scalars().first()
+
+    if not trainer:
+        pass
+
+    result = await db.execute(
+        select(Subscriptions)
+        .options(selectinload(Subscriptions.user))
+        .where(Subscriptions.trainer_id == user.id)
+    )
+    client = result.scalars().all()
+
+
+    response = {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "phone_number": user.phone_number,
+        "date_of_birth": user.date_of_birth,
+        "gender": user.gender,
     }
 
     return response

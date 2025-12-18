@@ -3,21 +3,28 @@ import { dashboardAPI } from "../api/dashboard";
 
 export default function PaymentsContent() {
     const [payments, setPayments] = useState([]);
+    const [dailyProfit, setDailyProfit] = useState(0);
+    const [monthlyProfit, setMonthlyProfit] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetchPaymentHistory();
+        fetchData();
     }, []);
 
-    const fetchPaymentHistory = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await dashboardAPI.getPaymentHistory();
-            setPayments(data);
+            const [paymentData, profitData] = await Promise.all([
+                dashboardAPI.getPaymentHistory(),
+                dashboardAPI.getProfit(),
+            ]);
+            setPayments(paymentData);
+            setDailyProfit(profitData.daily_profit || 0);
+            setMonthlyProfit(profitData.monthly_profit || 0);
         } catch (err) {
-            console.error("Error fetching payment history:", err);
-            setError("To'lovlar tarixini yuklashda xato");
+            console.error("Error fetching data:", err);
+            setError("Ma'lumotni yuklashda xato");
         } finally {
             setLoading(false);
         }
@@ -38,12 +45,8 @@ export default function PaymentsContent() {
         return new Intl.NumberFormat("uz-UZ").format(amount);
     };
 
-    const totalRevenue =
-        payments.length > 0
-            ? formatCurrency(payments.reduce((sum, p) => sum + p.amount, 0)) +
-              " so'm"
-            : "0 so'm";
-    const todayPayments = "450,000 so'm";
+    // Mock weekly profit (will be replaced with real data later)
+    const weeklyProfit = "3,250,000";
 
     return (
         <div className="space-y-6">
@@ -56,24 +59,24 @@ export default function PaymentsContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-sm text-gray-600">Jami Daromad</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">
-                        {totalRevenue}
-                    </p>
-                </div>
-                <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-sm text-gray-600">Bugungi To'lovlar</p>
+                    <p className="text-sm text-gray-600">Bugungi Daromad</p>
                     <p
                         className="text-2xl font-bold text-gray-900 mt-2"
                         style={{ color: "#f0453f" }}
                     >
-                        {todayPayments}
+                        {formatCurrency(dailyProfit)} so'm
                     </p>
                 </div>
                 <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-sm text-gray-600">Kutilgan To'lovlar</p>
+                    <p className="text-sm text-gray-600">Haftalik Daromad</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                        750,000 so'm
+                        {weeklyProfit} so'm
+                    </p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <p className="text-sm text-gray-600">Oylik Daromad</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-2">
+                        {formatCurrency(monthlyProfit)} so'm
                     </p>
                 </div>
             </div>

@@ -72,4 +72,14 @@ export const usersAPI = {
             throw error;
         }
     },
+
+    getTrainers: async () => {
+        try {
+            const response = await client.get("/users/trainers");
+            return response.data;
+        } catch (error) {
+            console.error("Get trainers error:", error);
+            throw error;
+        }
+    },
 };

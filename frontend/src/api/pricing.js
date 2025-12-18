@@ -48,4 +48,34 @@ export const pricingAPI = {
             throw error;
         }
     },
+
+    update: async (planId, name, price, duration_days) => {
+        try {
+            const response = await client.put(
+                `/admin/subscription_plan/update/${planId}`,
+                {
+                    name,
+                    price,
+                    duration_days,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Error updating pricing plan:", error);
+            throw error;
+        }
+    },
+
+    partialUpdate: async (planId, data) => {
+        try {
+            const response = await client.patch(
+                `/admin/subscription_plan/update/${planId}`,
+                data
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Error patching pricing plan:", error);
+            throw error;
+        }
+    },
 };

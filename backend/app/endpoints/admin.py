@@ -88,7 +88,7 @@ async def update_subscription_plan(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found",
         )
-    print(plan.id,plan.type)
+    print(plan.id, plan.type)
     plan.type = subscription.name
     plan.price = subscription.price
     plan.duration_days = subscription.duration_days
@@ -129,6 +129,7 @@ async def subscriptions_assign(
         user_id=subscription.user_id,
         plan_id=subscription.plan_id,
         payment_method=subscription.payment_method,
+        trainer_id=subscription.trainer_id,
         start_date=date.today(),
         end_date=date.today() + timedelta(days=30),
     )

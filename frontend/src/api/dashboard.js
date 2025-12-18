@@ -52,4 +52,14 @@ export const dashboardAPI = {
             throw error;
         }
     },
+
+    getProfit: async () => {
+        try {
+            const response = await client.get("/dashboard/profit");
+            return response.data;
+        } catch (error) {
+            console.error("Get profit error:", error);
+            throw error;
+        }
+    },
 };

@@ -4,11 +4,14 @@ import { pricingAPI } from "../api/pricing";
 
 export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
     const [users, setUsers] = useState([]);
+    const [trainers, setTrainers] = useState([]);
     const [plans, setPlans] = useState([]);
     const [selectedUser, setSelectedUser] = useState("");
     const [selectedPlan, setSelectedPlan] = useState("");
+    const [selectedTrainer, setSelectedTrainer] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [isLoadingTrainers, setIsLoadingTrainers] = useState(false);
     const [isLoadingPlans, setIsLoadingPlans] = useState(false);
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,6 +21,7 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
     useEffect(() => {
         if (isOpen) {
             fetchUsers();
+            fetchTrainers();
             fetchPlans();
         }
     }, [isOpen]);
@@ -32,6 +36,19 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
             setError("Foydalanuvchilarni yuklashda xato");
         } finally {
             setIsLoadingUsers(false);
+        }
+    };
+
+    const fetchTrainers = async () => {
+        setIsLoadingTrainers(true);
+        try {
+            const data = await usersAPI.getTrainers();
+            setTrainers(data);
+        } catch (err) {
+            console.error("Error fetching trainers:", err);
+            setError("Murabbiylarni yuklashda xato");
+        } finally {
+            setIsLoadingTrainers(false);
         }
     };
 
@@ -72,10 +89,12 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
                 userId: selectedUser,
                 planId: selectedPlan,
                 paymentMethod,
+                trainerId: selectedTrainer || null,
             });
             // Reset form
             setSelectedUser("");
             setSelectedPlan("");
+            setSelectedTrainer("");
             setPaymentMethod("cash");
             setSearchUser("");
             setError(null);
@@ -94,6 +113,7 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
 
     const selectedUserData = users.find((u) => u.id === selectedUser);
     const selectedPlanData = plans.find((p) => p.id === selectedPlan);
+    const selectedTrainerData = trainers.find((t) => t.id === selectedTrainer);
 
     if (!isOpen) return null;
 
@@ -188,6 +208,31 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Trainer Selection */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                            Murabbiy (ixtiyoriy)
+                        </label>
+                        <select
+                            value={selectedTrainer}
+                            onChange={(e) => setSelectedTrainer(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        >
+                            <option value="">-- Murabbiy tanlanmagan --</option>
+                            {isLoadingTrainers ? (
+                                <option>Yuklanmoqda...</option>
+                            ) : trainers.length === 0 ? (
+                                <option>Murabbiy topilmadi</option>
+                            ) : (
+                                trainers.map((trainer) => (
+                                    <option key={trainer.id} value={trainer.id}>
+                                        {trainer.first_name} {trainer.last_name}
+                                    </option>
+                                ))
+                            )}
+                        </select>
                     </div>
 
                     {/* Payment Method */}

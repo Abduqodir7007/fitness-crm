@@ -24,12 +24,16 @@ class Users(Base):
     is_superuser = Column(Boolean, default=False)
 
     subscriptions = relationship(
-        "Subscriptions", back_populates="user", cascade="all, delete-orphan"
+        "Subscriptions",
+        back_populates="user",
+        foreign_keys="Subscriptions.user_id",
+        cascade="all, delete-orphan",
     )
 
     attendances = relationship("Attendance", back_populates="user")
     daily_subscriptions = relationship("DailySubscriptions", back_populates="user")
     payments = relationship("Payment", back_populates="user")
+
 
 class SubscriptionPlans(Base):
     __tablename__ = "subscription_plan"
@@ -52,23 +56,25 @@ class Subscriptions(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
+    payment_method = Column(String(50), nullable=False)
+    end_date = Column(Date, nullable=False)
+    start_date = Column(Date, nullable=False)
+    is_active = Column(Boolean, default=True)
+
+    trainer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    trainer = relationship("Users", foreign_keys=[trainer_id])
+
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    user = relationship("Users", foreign_keys=[user_id], back_populates="subscriptions")
+
     plan_id = Column(
         UUID(as_uuid=True),
         ForeignKey("subscription_plan.id", ondelete="CASCADE"),
         nullable=False,
     )
-    payment_method = Column(String(50), nullable=False)
-    end_date = Column(Date, nullable=False)
-    start_date = Column(Date, nullable=False)
-
-    is_active = Column(Boolean, default=True)
-
-    user = relationship("Users", back_populates="subscriptions")
     plan = relationship("SubscriptionPlans", back_populates="subscriptions")
-    
 
 
 class Attendance(Base):
@@ -94,7 +100,7 @@ class Payment(Base):
     payment_method = Column(String(50), nullable=False)
 
     user = relationship("Users", back_populates="payments")
-    
+
 
 class DailySubscriptions(Base):
     __tablename__ = "daily_subscriptions"
