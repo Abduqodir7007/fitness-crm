@@ -1,6 +1,12 @@
 import json
+import io
+
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
 from datetime import timedelta, date
 from dateutil.relativedelta import relativedelta
+from fastapi.responses import StreamingResponse
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -153,7 +159,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         start_date += timedelta(days=1)
 
     response["weekly_clients"] = weekly_clients_list
-    
+
     await redis.set(
         settings.WEEKLY_CLIENTS,
         json.dumps(weekly_clients_list),
@@ -256,3 +262,59 @@ async def get_profit(db: AsyncSession = Depends(get_db)):
     response = {"daily_profit": daily_profit, "monthly_profit": monthly_profit}
 
     return response
+
+
+@router.get("/download/stats", status_code=status.HTTP_200_OK)
+async def download_stats(
+    db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
+):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Dashboard Stats"
+
+    font = Font(size=14)
+
+    ws.append(
+        [
+            "Full Name",
+            "Role",
+            "Phone Number",
+            "Subscription Start Date",
+            "Subscription End Date",
+        ]
+    )
+    ws.column_dimensions["A"].width = 25
+    ws.column_dimensions["B"].width = 10
+    ws.column_dimensions["C"].width = 25
+    ws.column_dimensions["D"].width = 30
+    ws.column_dimensions["E"].width = 30
+
+    result = await db.execute(
+        select(Subscriptions).options(selectinload(Subscriptions.user))
+    )
+    subscriptions = result.scalars().all()
+
+    for subscription in subscriptions:
+        ws.append(
+            [
+                subscription.user.full_name,
+                subscription.user.role,
+                subscription.user.phone_number,
+                subscription.start_date,
+                subscription.end_date,
+            ]
+        )
+
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.font = font
+
+    stream = io.BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    return StreamingResponse(
+        stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="dashboard_stats.xlsx"'},
+    )
