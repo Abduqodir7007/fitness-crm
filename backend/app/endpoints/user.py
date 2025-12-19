@@ -1,23 +1,25 @@
 import json
-from ..database import get_db
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
+from ..database import get_db
 from ..schemas.users import UserListResponse, UserResponse
 from ..models import Users, Subscriptions, Payment, Attendance
-from sqlalchemy.future import select
 from ..websocket import manager
 from ..utils import is_subscription_active
 from ..dependancy import get_current_user
-from sqlalchemy import or_, and_
+
+from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from fastapi import (
     APIRouter,
-    Depends,
     HTTPException,
     status,
     WebSocket,
     WebSocketDisconnect,
     Query,
+    Depends,
 )
 
 router = APIRouter(prefix="/users", tags=["User Management"])
@@ -133,34 +135,51 @@ async def get_current_user_info(
     return response
 
 
-@router.get("/trainer/", status_code=status.HTTP_200_OK)
-async def get_trainer_info(
-    user: Users = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
-
-    result = await db.execute(select(Users).where(Users.id == user.id))
+@router.get("/trainer/{trainer_id}", status_code=status.HTTP_200_OK)
+async def get_trainer_by_id(trainer_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Users).where(Users.id == trainer_id))
     trainer = result.scalars().first()
 
     if not trainer:
-        pass
-
-    result = await db.execute(
-        select(Subscriptions)
-        .options(selectinload(Subscriptions.user))
-        .where(Subscriptions.trainer_id == user.id)
-    )
-    client = result.scalars().all()
-
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trainer not found",
+        )
 
     response = {
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "phone_number": user.phone_number,
-        "date_of_birth": user.date_of_birth,
-        "gender": user.gender,
+        "id": trainer.id,
+        "first_name": trainer.first_name,
+        "last_name": trainer.last_name,
+        "phone_number": trainer.phone_number,
+        "date_of_birth": trainer.date_of_birth,
+        "gender": trainer.gender,
     }
 
     return response
+
+
+@router.get("/trainers/{trainer_id}/clients/", status_code=status.HTTP_200_OK)
+async def get_trainer_clients(trainer_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Subscriptions)
+        .options(selectinload(Subscriptions.user), selectinload(Subscriptions.plan))
+        .where(Subscriptions.trainer_id == trainer_id)
+    )
+    subscriptions = result.scalars().all()
+
+    response = []
+    for sub in subscriptions:
+        response.append(
+            {
+                "client_name": sub.user.full_name,
+                "phone_number": sub.user.phone_number,
+                "subscription_type": sub.plan.type,
+                "start_date": sub.start_date,
+                "end_date": sub.end_date,
+            }
+        )
+
+    return {"total_clients": len(subscriptions), "clients": response}
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)

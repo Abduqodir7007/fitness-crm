@@ -34,6 +34,10 @@ class Users(Base):
     daily_subscriptions = relationship("DailySubscriptions", back_populates="user")
     payments = relationship("Payment", back_populates="user")
 
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
 
 class SubscriptionPlans(Base):
     __tablename__ = "subscription_plan"

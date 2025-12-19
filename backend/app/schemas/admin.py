@@ -22,7 +22,7 @@ class SubscriptionCreate(BaseModel):
     user_id: str
     plan_id: str
     payment_method: PaymentMethod
-    trainer_id: str = None  # Optional trainer assignment
+    trainer_id: str | None = None
 
     class Config:
         from_attributes = True
