@@ -62,4 +62,25 @@ export const dashboardAPI = {
             throw error;
         }
     },
+
+    downloadStats: async () => {
+        try {
+            const response = await client.get("/dashboard/download/stats", {
+                responseType: "blob",
+            });
+            // Create a blob URL and trigger download
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "dashboard_stats.xlsx");
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            return response.data;
+        } catch (error) {
+            console.error("Download stats error:", error);
+            throw error;
+        }
+    },
 };

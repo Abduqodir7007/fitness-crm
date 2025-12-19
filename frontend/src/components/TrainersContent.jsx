@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import AddTrainerModal from "./AddTrainerModal";
 import { authAPI } from "../api/auth";
 
 export default function TrainersContent() {
+    const navigate = useNavigate();
     const [trainers, setTrainers] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -218,7 +220,8 @@ export default function TrainersContent() {
                     {trainers.map((trainer) => (
                         <div
                             key={trainer.id}
-                            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
+                            onClick={() => navigate(`/trainer/${trainer.id}`)}
+                            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold">

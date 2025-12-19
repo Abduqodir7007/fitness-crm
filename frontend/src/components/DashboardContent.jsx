@@ -59,6 +59,7 @@ const DashboardContent = memo(function DashboardContent() {
         useState(false);
     const [isDailySubscriptionModalOpen, setIsDailySubscriptionModalOpen] =
         useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [pieChartData, setPieChartData] = useState([]);
     const [hoveredSegment, setHoveredSegment] = useState(null);
     const [hoveredLinePoint, setHoveredLinePoint] = useState(null);
@@ -292,6 +293,18 @@ const DashboardContent = memo(function DashboardContent() {
         }
     };
 
+    const handleDownloadStats = async () => {
+        setIsDownloading(true);
+        try {
+            await dashboardAPI.downloadStats();
+        } catch (err) {
+            console.error("Error downloading stats:", err);
+            setError("Statistikani yuklashda xato");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Header with Title and Buttons */}
@@ -306,14 +319,24 @@ const DashboardContent = memo(function DashboardContent() {
                 </div>
                 <div className="flex gap-3">
                     <button
+                        onClick={handleDownloadStats}
+                        disabled={isDownloading}
+                        className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <span>📥</span>{" "}
+                        {isDownloading
+                            ? "Yuklanmoqda..."
+                            : "Statistika Yuklash"}
+                    </button>
+                    <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2"
+                        className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2"
                     >
                         <span>👥</span> Mijoz qo'shish
                     </button>
                     <button
                         onClick={() => setIsSubscriptionModalOpen(true)}
-                        className="px-6 py-2 rounded-lg text-white font-semibold transition"
+                        className="px-3 py-1 text-sm rounded-lg text-white font-semibold transition"
                         style={{ backgroundColor: "#f0453f" }}
                         onMouseEnter={(e) =>
                             (e.target.style.backgroundColor = "#d63a34")
