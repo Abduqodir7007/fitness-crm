@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { usersAPI } from "../api/users";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
     const [userDetails, setUserDetails] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     // Mock subscription data - replace with API data later
     const mockSubscription = {
@@ -134,7 +136,10 @@ export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
                             </svg>
                             Tahrirlash
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        <button
+                            onClick={() => setIsPasswordModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                        >
                             <svg
                                 className="w-5 h-5"
                                 fill="none"
@@ -539,6 +544,17 @@ export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
                         </div>
                     </div>
                 )}
+
+                {/* Password Modal */}
+                <ChangePasswordModal
+                    isOpen={isPasswordModalOpen}
+                    onClose={() => setIsPasswordModalOpen(false)}
+                    userId={user?.id}
+                    onSuccess={() => {
+                        setError("Parol muvaffaqiyatli o'zgartirildi!");
+                        setTimeout(() => setError(null), 3000);
+                    }}
+                />
             </div>
         </div>
     );

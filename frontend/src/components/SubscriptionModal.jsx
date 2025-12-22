@@ -1,27 +1,32 @@
 import { useState, useEffect } from "react";
 import { usersAPI } from "../api/users";
 import { pricingAPI } from "../api/pricing";
+import { useTrainersWebSocket } from "../hooks/useTrainersWebSocket";
 
 export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
     const [users, setUsers] = useState([]);
-    const [trainers, setTrainers] = useState([]);
     const [plans, setPlans] = useState([]);
     const [selectedUser, setSelectedUser] = useState("");
     const [selectedPlan, setSelectedPlan] = useState("");
     const [selectedTrainer, setSelectedTrainer] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-    const [isLoadingTrainers, setIsLoadingTrainers] = useState(false);
     const [isLoadingPlans, setIsLoadingPlans] = useState(false);
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const [searchUser, setSearchUser] = useState("");
 
+    // Use websocket hook for real-time trainers updates
+    const {
+        trainers,
+        isLoading: isLoadingTrainers,
+        error: trainersError,
+    } = useTrainersWebSocket();
+
     useEffect(() => {
         if (isOpen) {
             fetchUsers();
-            fetchTrainers();
             fetchPlans();
         }
     }, [isOpen]);
@@ -36,19 +41,6 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
             setError("Foydalanuvchilarni yuklashda xato");
         } finally {
             setIsLoadingUsers(false);
-        }
-    };
-
-    const fetchTrainers = async () => {
-        setIsLoadingTrainers(true);
-        try {
-            const data = await usersAPI.getTrainers();
-            setTrainers(data);
-        } catch (err) {
-            console.error("Error fetching trainers:", err);
-            setError("Murabbiylarni yuklashda xato");
-        } finally {
-            setIsLoadingTrainers(false);
         }
     };
 

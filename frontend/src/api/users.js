@@ -104,4 +104,18 @@ export const usersAPI = {
             throw error;
         }
     },
+
+    updatePassword: async (userId, password) => {
+        try {
+            const response = await client.patch("/users/update/password", {
+                user_id: userId,
+                password,
+                confirm_password: password,
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Update password error:", error);
+            throw error;
+        }
+    },
 };

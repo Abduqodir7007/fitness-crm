@@ -3,12 +3,14 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+
 from ..database import get_db
-from ..schemas.users import UserListResponse, UserResponse
+from ..schemas.users import UserListResponse, UpdateUserPassword
 from ..models import Users, Subscriptions, Payment, Attendance
 from ..websocket import manager
 from ..utils import is_subscription_active
 from ..dependancy import get_current_user
+from ..security import hash_password
 
 from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
@@ -51,35 +53,56 @@ async def get_all_users(
     return users
 
 
-@router.get(
-    "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
-)
-async def get_trainers(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Users).where(Users.role == "trainer"))
-    trainers = result.scalars().all()
-    return trainers
-
-
-@router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
-async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
-
-    is_active = await is_subscription_active(user_id, db)
-    if is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete user with active subscription",
+@router.get("/{user_id}", status_code=status.HTTP_200_OK)
+async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Users)
+        .options(
+            selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
+            selectinload(Users.payments),
         )
-
-    result = await db.execute(select(Users).where(Users.id == user_id))
+        .where(Users.id == user_id)
+    )
     user = result.scalars().first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    await db.delete(user)
-    await db.commit()
-    return {"message": "User deleted successfully"}
+
+    response = {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "phone_number": user.phone_number,
+        "date_of_birth": user.date_of_birth,
+        "gender": user.gender,
+        "is_active": user.is_active,
+        "payments": [
+            {
+                "amount": pay.amount,
+                "payment_date": pay.payment_date,
+                "payment_method": pay.payment_method,
+            }
+            for pay in user.payments
+        ],
+        "subscriptions": [
+            {
+                "start_date": sub.start_date,
+                "end_date": sub.end_date,
+                "days_left": (sub.end_date - date.today()).days,
+                "plan": {
+                    "type": sub.plan.type,
+                    "price": sub.plan.price,
+                    "duration_days": sub.plan.duration_days,
+                    "is_active": sub.plan.is_active,
+                },
+            }
+            for sub in user.subscriptions
+        ],
+    }
+
+    return response
 
 
 @router.get("/me", status_code=status.HTTP_200_OK)
@@ -108,6 +131,7 @@ async def get_current_user_info(
         "phone_number": user.phone_number,
         "date_of_birth": user.date_of_birth,
         "gender": user.gender,
+        "is_active": user.is_active,
         "payments": [
             {
                 "amount": pay.amount,
@@ -133,6 +157,53 @@ async def get_current_user_info(
     }
 
     return response
+
+
+@router.patch("/update/password", status_code=status.HTTP_200_OK)
+async def update_user_password(
+    password: UpdateUserPassword,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Users).where(Users.id == password.user_id))
+    user = result.scalars().first()
+
+    user.hashed_password = await hash_password(password.password)
+
+    await db.commit()
+    return {"detail": "Password updated successfully"}
+
+
+@router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
+async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
+
+    is_active = await is_subscription_active(user_id, db)
+    if is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete user with active subscription",
+        )
+
+    result = await db.execute(select(Users).where(Users.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    await db.delete(user)
+    await db.commit()
+    return {"message": "User deleted successfully"}
+
+
+@router.get(
+    "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
+)
+async def get_trainers(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Users).where(and_(Users.role == "trainer", Users.is_active == True))
+    )
+    trainers = result.scalars().all()
+    return trainers
 
 
 @router.get("/trainer/{trainer_id}", status_code=status.HTTP_200_OK)
@@ -182,57 +253,6 @@ async def get_trainer_clients(trainer_id: str, db: AsyncSession = Depends(get_db
     return {"total_clients": len(subscriptions), "clients": response}
 
 
-@router.get("/{user_id}", status_code=status.HTTP_200_OK)
-async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Users)
-        .options(
-            selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
-            selectinload(Users.payments),
-        )
-        .where(Users.id == user_id)
-    )
-    user = result.scalars().first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    response = {
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "phone_number": user.phone_number,
-        "date_of_birth": user.date_of_birth,
-        "gender": user.gender,
-        "payments": [
-            {
-                "amount": pay.amount,
-                "payment_date": pay.payment_date,
-                "payment_method": pay.payment_method,
-            }
-            for pay in user.payments
-        ],
-        "subscriptions": [
-            {
-                "start_date": sub.start_date,
-                "end_date": sub.end_date,
-                "days_left": (sub.end_date - date.today()).days,
-                "plan": {
-                    "type": sub.plan.type,
-                    "price": sub.plan.price,
-                    "duration_days": sub.plan.duration_days,
-                    "is_active": sub.plan.is_active,
-                },
-            }
-            for sub in user.subscriptions
-        ],
-    }
-
-    return response
-
-
 @router.post("/attendance")
 async def create_attendance(
     current_user: Users = Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -268,7 +288,9 @@ async def websocket_trainers_endpoint(
             data = await websocket.receive_text()
             message = json.loads(data)
             if message.get("type") == "trainers":
-                query = select(Users).where(Users.role == "trainer")
+                query = select(Users).where(
+                    and_(Users.role == "trainer", Users.is_active == True)
+                )
                 result = await db.execute(query)
                 trainers = result.scalars().all()
 

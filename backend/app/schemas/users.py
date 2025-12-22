@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_serializer, field_validator
+from pydantic import BaseModel, field_serializer, field_validator, model_validator
 from enum import Enum
 from datetime import date
 from uuid import UUID
@@ -41,7 +41,6 @@ class SubscriptionPlansResponse(BaseModel):
     price: int
     duration_days: int
     is_active: bool
-
 
     class Config:
         from_attributes = True
@@ -105,3 +104,25 @@ class UserListResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UpdateUserPassword(BaseModel):
+    user_id: UUID
+    password: str
+    confirm_password: str
+
+    @field_validator("password", "confirm_password")
+    @classmethod
+    def validate_password(cls, password: str):
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+
+    @model_validator(mode="after")
+    def password_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match.")
+        return self
+
+    @field_serializer("user_id")
+    def serialize_id(cls, id: UUID) -> str:
+        return str(id)

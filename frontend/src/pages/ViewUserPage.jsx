@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usersAPI } from "../api/users";
+import ChangePasswordModal from "../components/ChangePasswordModal";
 
 export default function ViewUserPage() {
     const { userId } = useParams();
@@ -8,6 +9,7 @@ export default function ViewUserPage() {
     const [userDetails, setUserDetails] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     useEffect(() => {
         fetchUserDetails();
@@ -149,7 +151,10 @@ export default function ViewUserPage() {
                             </svg>
                             Tahrirlash
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        <button
+                            onClick={() => setIsPasswordModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                        >
                             <svg
                                 className="w-5 h-5"
                                 fill="none"
@@ -484,6 +489,17 @@ export default function ViewUserPage() {
                         </p>
                     )}
                 </div>
+
+                {/* Password Modal */}
+                <ChangePasswordModal
+                    isOpen={isPasswordModalOpen}
+                    onClose={() => setIsPasswordModalOpen(false)}
+                    userId={userId}
+                    onSuccess={() => {
+                        setError("Parol muvaffaqiyatli o'zgartirildi!");
+                        setTimeout(() => setError(null), 3000);
+                    }}
+                />
             </div>
         </div>
     );

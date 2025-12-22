@@ -191,6 +191,27 @@ export default function ClientAttendancePage() {
                                     : "—"}
                             </p>
                         </div>
+
+                        {/* Active Status */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-600 mb-2">
+                                Holat
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <div
+                                    className={`w-3 h-3 rounded-full ${
+                                        clientInfo?.is_active
+                                            ? "bg-green-500"
+                                            : "bg-gray-400"
+                                    }`}
+                                />
+                                <p className="text-lg text-gray-900">
+                                    {clientInfo?.is_active
+                                        ? "Faol"
+                                        : "Faol emas"}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Active Subscription Info */}

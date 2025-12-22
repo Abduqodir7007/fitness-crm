@@ -89,8 +89,14 @@ export default function TrainersContent() {
 
     // Setup on component mount
     useEffect(() => {
-        fetchTrainers();
-        setupWebSocket();
+        const initialize = async () => {
+            // First, fetch trainers from HTTP endpoint
+            await fetchTrainers();
+            // Then setup websocket for real-time updates
+            setupWebSocket();
+        };
+
+        initialize();
 
         // Cleanup WebSocket on unmount
         return () => {
