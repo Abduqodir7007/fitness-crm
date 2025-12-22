@@ -107,14 +107,29 @@ export const usersAPI = {
 
     updatePassword: async (userId, password) => {
         try {
-            const response = await client.patch("/users/update/password", {
+            const data = {
                 user_id: userId,
                 password,
                 confirm_password: password,
-            });
+            };
+            const response = await client.patch("/users/update/password", data);
             return response.data;
         } catch (error) {
-            console.error("Update password error:", error);
+            throw error;
+        }
+    },
+
+    updateUserInfo: async (userId, firstName, lastName, phoneNumber) => {
+        try {
+            const data = {
+                user_id: userId,
+                first_name: firstName,
+                last_name: lastName,
+                phone_number: phoneNumber,
+            };
+            const response = await client.patch("/users/update/info", data);
+            return response.data;
+        } catch (error) {
             throw error;
         }
     },

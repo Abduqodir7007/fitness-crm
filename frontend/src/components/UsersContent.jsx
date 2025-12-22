@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AddUserModal from "./AddUserModal";
+import { capitalize } from "../utils/capitalize";
 import { authAPI } from "../api/auth";
 import { usersAPI } from "../api/users";
 import { notificationsAPI } from "../api/notifications";
@@ -244,8 +245,12 @@ export default function UsersContent() {
                                     >
                                         <div className="flex-1">
                                             <h4 className="font-semibold text-gray-900">
-                                                {notification.first_name}{" "}
-                                                {notification.last_name}
+                                                {capitalize(
+                                                    notification.first_name
+                                                )}{" "}
+                                                {capitalize(
+                                                    notification.last_name
+                                                )}
                                             </h4>
                                             <p className="text-sm text-gray-600">
                                                 {notification.phone_number}
@@ -359,10 +364,10 @@ export default function UsersContent() {
                                             className="hover:bg-gray-50"
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {user.first_name}
+                                                {capitalize(user.first_name)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {user.last_name}
+                                                {capitalize(user.last_name)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                 {user.phone_number}

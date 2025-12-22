@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { usersAPI } from "../api/users";
+import { capitalize } from "../utils/capitalize";
 import ChangePasswordModal from "./ChangePasswordModal";
+import EditUserModal from "./EditUserModal";
 
 export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
     const [userDetails, setUserDetails] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Mock subscription data - replace with API data later
     const mockSubscription = {
@@ -120,7 +123,10 @@ export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
                     </button>
 
                     <div className="flex gap-3">
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        <button
+                            onClick={() => setIsEditModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                        >
                             <svg
                                 className="w-5 h-5"
                                 fill="none"
@@ -135,6 +141,12 @@ export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
                                 />
                             </svg>
                             Tahrirlash
+                        </button>
+                        <button
+                            onClick={() => setIsEditModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition hidden"
+                        >
+                            {/* Duplicate button for layout - actual one above is used */}
                         </button>
                         <button
                             onClick={() => setIsPasswordModalOpen(true)}
@@ -215,8 +227,8 @@ export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
                                 {/* User Info */}
                                 <div className="flex-1">
                                     <h2 className="text-3xl font-bold text-gray-900">
-                                        {displayUser.first_name}{" "}
-                                        {displayUser.last_name}
+                                        {capitalize(displayUser.first_name)}{" "}
+                                        {capitalize(displayUser.last_name)}
                                     </h2>
                                     <div className="space-y-2 mt-3 text-gray-600">
                                         <div className="flex items-center gap-2">
@@ -552,6 +564,18 @@ export default function ViewUserModal({ isOpen, onClose, user, onDelete }) {
                     userId={user?.id}
                     onSuccess={() => {
                         setError("Parol muvaffaqiyatli o'zgartirildi!");
+                        setTimeout(() => setError(null), 3000);
+                    }}
+                />
+
+                {/* Edit User Modal */}
+                <EditUserModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    user={userDetails || user}
+                    onSuccess={() => {
+                        fetchUserDetails();
+                        setError("Ma'lumotlar muvaffaqiyatli o'zgartirildi!");
                         setTimeout(() => setError(null), 3000);
                     }}
                 />

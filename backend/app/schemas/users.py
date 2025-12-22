@@ -126,3 +126,14 @@ class UpdateUserPassword(BaseModel):
     @field_serializer("user_id")
     def serialize_id(cls, id: UUID) -> str:
         return str(id)
+
+
+class UpdateUserInformation(BaseModel):
+    user_id: UUID
+    first_name: str | None = None
+    last_name: str | None = None
+    phone_number: str | None = None
+
+    @field_serializer("user_id")
+    def serialize_id(cls, id: UUID) -> str:
+        return str(id)

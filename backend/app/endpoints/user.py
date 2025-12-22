@@ -5,11 +5,11 @@ from sqlalchemy.future import select
 
 
 from ..database import get_db
-from ..schemas.users import UserListResponse, UpdateUserPassword
+from ..schemas.users import UserListResponse, UpdateUserPassword, UpdateUserInformation
 from ..models import Users, Subscriptions, Payment, Attendance
 from ..websocket import manager
 from ..utils import is_subscription_active
-from ..dependancy import get_current_user
+from ..dependancy import get_current_user, get_superuser
 from ..security import hash_password
 
 from sqlalchemy import and_, func
@@ -171,6 +171,28 @@ async def update_user_password(
 
     await db.commit()
     return {"detail": "Password updated successfully"}
+
+
+@router.patch("/update/info")
+async def update_user_information(
+    user_info: UpdateUserInformation,
+    db: AsyncSession = Depends(get_db),
+    user: Users = Depends(get_superuser),
+):
+    result = await db.execute(select(Users).where(Users.id == user_info.user_id))
+    user = result.scalars().first()
+
+    if user_info.first_name is not None:
+        user.first_name = user_info.first_name
+
+    if user_info.last_name is not None:
+        user.last_name = user_info.last_name
+
+    if user_info.phone_number is not None:
+        user.phone_number = user_info.phone_number
+
+    await db.commit()
+    return {"detail": "User information updated successfully"}
 
 
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)

@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { capitalize } from "../utils/capitalize";
 import AddTrainerModal from "./AddTrainerModal";
+import EditUserModal from "./EditUserModal";
 import { authAPI } from "../api/auth";
 
 export default function TrainersContent() {
     const navigate = useNavigate();
     const [trainers, setTrainers] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedTrainer, setSelectedTrainer] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const websocketRef = useRef(null);
@@ -244,7 +248,8 @@ export default function TrainersContent() {
                                 </span>
                             </div>
                             <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                {trainer.first_name} {trainer.last_name}
+                                {capitalize(trainer.first_name)}{" "}
+                                {capitalize(trainer.last_name)}
                             </h3>
                             <p className="text-sm text-gray-600 mb-4">
                                 {trainer.phone_number}
@@ -268,13 +273,21 @@ export default function TrainersContent() {
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition text-sm">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTrainer(trainer);
+                                        setIsEditModalOpen(true);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition text-sm"
+                                >
                                     ✏️ Tahrirlash
                                 </button>
                                 <button
-                                    onClick={() =>
-                                        handleDeleteTrainer(trainer.id)
-                                    }
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteTrainer(trainer.id);
+                                    }}
                                     className="flex-1 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-medium transition text-sm"
                                 >
                                     🗑️ O'chirish
@@ -284,6 +297,25 @@ export default function TrainersContent() {
                     ))}
                 </div>
             )}
+            {/* Edit Trainer Modal */}
+            <EditUserModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedTrainer(null);
+                }}
+                user={selectedTrainer}
+                onSuccess={() => {
+                    // Refresh trainers list after update
+                    fetchTrainers();
+                    // Also trigger WebSocket update if available
+                    if (websocketRef.current?.readyState === WebSocket.OPEN) {
+                        websocketRef.current.send(
+                            JSON.stringify({ type: "trainers" })
+                        );
+                    }
+                }}
+            />
         </div>
     );
 }

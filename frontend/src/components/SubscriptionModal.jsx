@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { usersAPI } from "../api/users";
 import { pricingAPI } from "../api/pricing";
+import { capitalize } from "../utils/capitalize";
 import { useTrainersWebSocket } from "../hooks/useTrainersWebSocket";
 
 export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
@@ -187,8 +188,12 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
                                                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100"
                                                 >
                                                     <div className="font-medium text-gray-900">
-                                                        {user.first_name}{" "}
-                                                        {user.last_name}
+                                                        {capitalize(
+                                                            user.first_name
+                                                        )}{" "}
+                                                        {capitalize(
+                                                            user.last_name
+                                                        )}
                                                     </div>
                                                     <div className="text-sm text-gray-600">
                                                         {user.phone_number}
@@ -220,7 +225,8 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
                             ) : (
                                 trainers.map((trainer) => (
                                     <option key={trainer.id} value={trainer.id}>
-                                        {trainer.first_name} {trainer.last_name}
+                                        {capitalize(trainer.first_name)}{" "}
+                                        {capitalize(trainer.last_name)}
                                     </option>
                                 ))
                             )}
