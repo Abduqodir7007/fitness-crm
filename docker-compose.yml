@@ -2,44 +2,41 @@ services:
     api:
         container_name: fitness_app
         build: ./backend
-        command: uvicorn app.main:app --host 0.0.0.0 --port 8000 -reload
-        port:
+        command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+        ports:
             - "8000:8000"
         volumes:
-            - .:/app
+            - ./backend:/app
         env_file:
             - .env
         depends_on:
-            db:
-                conditions: service_healthy
-            redis:
-                conditions: service_healthy
+            - db
+            - redis
+
     db:
         container_name: postgres
         image: postgres:15
         ports:
             - "5432:5432"
-
-        healthcheck:
-            test: ["CMD", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-            interval: 5s
-            timeout: 5s
-            retries: 5
+        # healthcheck:
+        #     test: ["CMD", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+        #     interval: 5s
+        #     timeout: 5s
+        #     retries: 5
         volumes:
-            - postgres_data:var/lib/postgresql/data
+            - postgres_data:/var/lib/postgresql/data
         env_file:
             - .env
     redis:
-        container_name: redis
+        container_name: redis-cache
         image: redis:7-alpine
         ports:
             - "6379:6379"
-        healthcheck:
-            test: ["CMD ", "redic-cli", "ping"]
-            interval: 5s
-            timeout: 5s
-            retries: 5
-
+        # healthcheck:
+        #     test: ["CMD", "redis-cli", "ping"]
+        #     interval: 5s
+        #     timeout: 5s
+        #     retries: 5
         env_file:
             - .env
 

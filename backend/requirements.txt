@@ -6,7 +6,6 @@ bcrypt==4.0.1
 python-jose[cryptography]
 pydantic
 pydantic-settings
-email-validator # remove if you do not use
 fastapi-mail
 passlib
 python-multipart
@@ -14,5 +13,5 @@ aiofiles #  remove if you do not use file uploads
 alembic
 psycopg2-binary 
 redis
-python-dateutil # remove if you do not use
 openpyxl
+python-dateutil
