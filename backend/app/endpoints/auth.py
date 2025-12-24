@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..dependancy import get_superuser
-from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
+from ..database import get_db
 from ..schemas.users import UserCreate, UserLogin
 from ..models import Users
-from sqlalchemy.future import select
 from ..security import (
     hash_password,
     verify_password,

@@ -111,10 +111,6 @@ async def get_subscription_stats(
 @router.get("/subscription/payment")
 async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
 
-    result1 = await db.execute(
-        select(func.sum(Payment.amount)).where(Payment.payment_date == date.today())
-    )
-
     result2 = await db.execute(
         select(func.count(DailySubscriptions.id)).where(
             DailySubscriptions.subscription_date == date.today()
@@ -122,10 +118,8 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
     )
 
     daily_visits = result2.scalars().first()
-    daily_profit = result1.scalars().first()
 
     response = {
-        "daily_profit": daily_profit or 0,
         "daily_clients": daily_visits or 0,
     }
 
@@ -145,7 +139,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
             func.count(DailySubscriptions.id),
         )
         .where(DailySubscriptions.subscription_date.between(start_date, end_date))
-        .group_by(func.date(DailySubscriptions.subscription_date))
+        .group_by(DailySubscriptions.subscription_date)
     )
 
     weekly_visits = result3.mappings().all()
@@ -168,6 +162,7 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
     return response
 
 
+# Bar chart endpoint
 @router.get("/monthly/payment")
 async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
 

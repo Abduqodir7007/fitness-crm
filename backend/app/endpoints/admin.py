@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..utils import is_subscription_active
 from ..dependancy import get_superuser
 from ..database import get_db
 from ..models import (
@@ -17,7 +18,6 @@ from ..schemas.admin import (
     DailySubscriptionCreate,
     SubscriptionResponse,
 )
-from ..utils import is_subscription_active
 
 
 router = APIRouter(
@@ -53,7 +53,7 @@ async def get_subscription_plans(
 
     return plans
 
-
+# do not used
 @router.put("/subscription_plans/deactivate/{plan_id}", status_code=status.HTTP_200_OK)
 async def deactivate_subscription_plan(
     plan_id: str, db: AsyncSession = Depends(get_db)

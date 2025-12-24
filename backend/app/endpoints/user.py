@@ -4,15 +4,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 
-from ..database import get_db
 from ..schemas.users import UserListResponse, UpdateUserPassword, UpdateUserInformation
-from ..models import Users, Subscriptions, Payment, Attendance
+from ..models import Users, Subscriptions, Attendance
 from ..websocket import manager
+from ..database import get_db
 from ..utils import is_subscription_active
 from ..dependancy import get_current_user, get_superuser
 from ..security import hash_password
 
-from sqlalchemy import and_, func
+from sqlalchemy import and_
 from sqlalchemy.orm import selectinload
 from fastapi import (
     APIRouter,
@@ -53,58 +53,6 @@ async def get_all_users(
     return users
 
 
-@router.get("/{user_id}", status_code=status.HTTP_200_OK)
-async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Users)
-        .options(
-            selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
-            selectinload(Users.payments),
-        )
-        .where(Users.id == user_id)
-    )
-    user = result.scalars().first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    response = {
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "phone_number": user.phone_number,
-        "date_of_birth": user.date_of_birth,
-        "gender": user.gender,
-        "is_active": user.is_active,
-        "payments": [
-            {
-                "amount": pay.amount,
-                "payment_date": pay.payment_date,
-                "payment_method": pay.payment_method,
-            }
-            for pay in user.payments
-        ],
-        "subscriptions": [
-            {
-                "start_date": sub.start_date,
-                "end_date": sub.end_date,
-                "days_left": (sub.end_date - date.today()).days,
-                "plan": {
-                    "type": sub.plan.type,
-                    "price": sub.plan.price,
-                    "duration_days": sub.plan.duration_days,
-                    "is_active": sub.plan.is_active,
-                },
-            }
-            for sub in user.subscriptions
-        ],
-    }
-
-    return response
-
-
 @router.get("/me", status_code=status.HTTP_200_OK)
 async def get_current_user_info(
     user: Users = Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -116,6 +64,72 @@ async def get_current_user_info(
             selectinload(Users.payments),
         )
         .where(Users.id == user.id)
+    )
+    user_data = result.scalars().first()
+
+    if not user_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    response = {
+        "first_name": user_data.first_name,
+        "last_name": user_data.last_name,
+        "phone_number": user_data.phone_number,
+        "date_of_birth": user_data.date_of_birth,
+        "gender": user_data.gender,
+        "is_active": user_data.is_active,
+        "payments": (
+            [
+                {
+                    "amount": pay.amount,
+                    "payment_date": pay.payment_date,
+                    "payment_method": pay.payment_method,
+                }
+                for pay in user_data.payments
+            ]
+            if user_data.payments
+            else []
+        ),
+        "subscriptions": (
+            [
+                {
+                    "start_date": sub.start_date,
+                    "end_date": sub.end_date,
+                    "days_left": (
+                        (sub.end_date - date.today()).days if sub.end_date else 0
+                    ),
+                    "plan": (
+                        {
+                            "type": sub.plan.type if sub.plan else None,
+                            "price": sub.plan.price if sub.plan else 0,
+                            "duration_days": sub.plan.duration_days if sub.plan else 0,
+                            "is_active": sub.plan.is_active if sub.plan else False,
+                        }
+                        if sub.plan
+                        else None
+                    ),
+                }
+                for sub in user_data.subscriptions
+            ]
+            if user_data.subscriptions
+            else []
+        ),
+    }
+
+    return response
+
+
+@router.get("/{user_id}", status_code=status.HTTP_200_OK)
+async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Users)
+        .options(
+            selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
+            selectinload(Users.payments),
+        )
+        .where(Users.id == user_id)
     )
     user = result.scalars().first()
 
@@ -300,7 +314,7 @@ async def create_attendance(
 
 
 @router.websocket("/ws/trainers")
-async def websocket_trainers_endpoint(  
+async def websocket_trainers_endpoint(
     websocket: WebSocket, db: AsyncSession = Depends(get_db)
 ):
     await manager.connect(websocket)

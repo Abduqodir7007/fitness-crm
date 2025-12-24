@@ -9,7 +9,6 @@ pydantic-settings
 fastapi-mail
 passlib
 python-multipart
-aiofiles #  remove if you do not use file uploads
 alembic
 psycopg2-binary 
 redis

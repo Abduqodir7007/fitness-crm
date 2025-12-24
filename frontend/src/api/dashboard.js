@@ -23,9 +23,7 @@ export const dashboardAPI = {
 
     getDailyStats: async () => {
         try {
-            const response = await client.get(
-                "/dashboard/subscription/payment"
-            );
+            const response = await client.get("/dashboard/profit");
             return response.data;
         } catch (error) {
             console.error("Get daily stats error:", error);
