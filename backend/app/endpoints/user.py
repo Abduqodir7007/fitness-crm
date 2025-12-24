@@ -300,7 +300,7 @@ async def create_attendance(
 
 
 @router.websocket("/ws/trainers")
-async def websocket_trainers_endpoint(          # type: igonore
+async def websocket_trainers_endpoint(  
     websocket: WebSocket, db: AsyncSession = Depends(get_db)
 ):
     await manager.connect(websocket)
