@@ -7,15 +7,15 @@ from .config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def hash_password(user_pwd: str):
+async def hash_password(user_pwd: str) -> str:
     return pwd_context.hash(user_pwd)
 
 
-async def verify_password(user_pwd: str, hashed_pwd: str):
+async def verify_password(user_pwd: str, hashed_pwd: str) -> bool:
     return pwd_context.verify(user_pwd, hashed_pwd)
 
 
-async def create_access_token(data: dict):
+async def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     to_encode["exp"] = datetime.now() + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -26,7 +26,7 @@ async def create_access_token(data: dict):
     return token
 
 
-async def create_refresh_token(data: dict):
+async def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
     to_encode["exp"] = datetime.now() + timedelta(
         days=settings.REFRESH_TOKEN_EXPIRE_DAYS

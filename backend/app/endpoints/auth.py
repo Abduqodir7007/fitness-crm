@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from ..rate_limiter import rate_limiter
 from ..database import get_db
-from ..schemas.users import UserCreate, UserLogin
+from ..schemas.users import UserCreate, UserLogin, Token
 from ..models import Users
 from ..security import (
     hash_password,
@@ -16,7 +17,12 @@ from ..security import (
 router = APIRouter(prefix="/auth", tags=["Users"])
 
 
-@router.post("/register", status_code=status.HTTP_200_OK)
+@router.post(
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+    response_model=Token,
+    dependencies=[Depends(rate_limiter)],
+)
 async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(

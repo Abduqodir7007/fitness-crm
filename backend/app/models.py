@@ -1,9 +1,10 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer, func
+from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from .database import Base
 from datetime import datetime, date
+
+from .database import Base
 
 
 class Users(Base):
@@ -87,7 +88,7 @@ class Attendance(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    date = Column(Date, default=date.today(), nullable=False)  # change later
+    date = Column(Date, default=date.today(), nullable=False)
 
     user = relationship("Users", back_populates="attendances")
 

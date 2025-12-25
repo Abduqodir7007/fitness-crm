@@ -1,4 +1,10 @@
-from pydantic import BaseModel, field_serializer, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ValidationError,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 from enum import Enum
 from datetime import date
 from uuid import UUID
@@ -21,6 +27,13 @@ class Status(str, Enum):
     INACTIVE = "inactive"
 
 
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    role: str
+    token_type: str
+
+
 class UserCreate(BaseModel):
     first_name: str
     last_name: str
@@ -29,6 +42,25 @@ class UserCreate(BaseModel):
     date_of_birth: date | None = None
     gender: Gender | None = Gender.MALE
     role: UserRole | None = UserRole.CLIENT
+
+    @field_validator("password")
+    def validate_pwd(cls, password: str) -> str:
+        if len(password) < 6 or len(password) > 60:
+            raise ValueError("Password must be between 6 and 60 characters")
+        return password
+
+    @model_validator(mode="before")
+    def validate_names(cls, values: dict):
+        first = values.get("first_name", "")
+        last = values.get("last_name", "")
+
+        if len(first) < 2 or len(last) < 2:
+            raise ValueError("First name and last name must be at least 2 characters")
+
+        values["first_name"] = values["first_name"].strip().capitalize()
+        values["last_name"] = values["last_name"].strip().capitalize()
+
+        return values
 
 
 class UserLogin(BaseModel):
