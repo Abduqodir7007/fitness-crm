@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, func
+from sqlalchemy import select
 from datetime import timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -88,7 +88,7 @@ async def update_subscription_plan(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found",
         )
-    print(plan.id, plan.type)
+
     plan.type = subscription.name
     plan.price = subscription.price
     plan.duration_days = subscription.duration_days
