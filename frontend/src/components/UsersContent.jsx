@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AddUserModal from "./AddUserModal";
+import EditUserModal from "./EditUserModal";
 import { capitalize } from "../utils/capitalize";
 import { authAPI } from "../api/auth";
 import { usersAPI } from "../api/users";
@@ -10,6 +11,8 @@ export default function UsersContent() {
     const [users, setUsers] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
@@ -169,6 +172,23 @@ export default function UsersContent() {
         navigate(`/user/${user.id}`);
     };
 
+    const handleEditUser = (user) => {
+        setSelectedUser(user);
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditSuccess = () => {
+        // Refresh users list after successful edit
+        if (
+            websocketRef.current &&
+            websocketRef.current.readyState === WebSocket.OPEN
+        ) {
+            websocketRef.current.send(JSON.stringify({ type: "users" }));
+        } else {
+            fetchUsers();
+        }
+    };
+
     // Filter users based on search query
     const filteredUsers = users.filter((user) => {
         const query = searchQuery.toLowerCase();
@@ -307,6 +327,16 @@ export default function UsersContent() {
                 onSubmit={handleAddUser}
             />
 
+            <EditUserModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedUser(null);
+                }}
+                onSuccess={handleEditSuccess}
+                user={selectedUser}
+            />
+
             {isLoadingUsers ? (
                 <div className="bg-white rounded-lg shadow p-8 text-center">
                     <p className="text-gray-600">
@@ -411,6 +441,9 @@ export default function UsersContent() {
                                                     </svg>
                                                 </button>
                                                 <button
+                                                    onClick={() =>
+                                                        handleEditUser(user)
+                                                    }
                                                     className="text-black hover:text-blue-600 transition"
                                                     title="Tahrirlash"
                                                 >
