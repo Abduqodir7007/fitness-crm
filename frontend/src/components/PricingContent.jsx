@@ -95,10 +95,12 @@ export default function PricingContent() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900">Tariflar</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    Tariflar
+                </h2>
+                <p className="text-gray-600 text-sm sm:text-base">
                     Barcha obunalik tariflarni boshqaring.
                 </p>
             </div>
@@ -106,7 +108,7 @@ export default function PricingContent() {
             <div className="flex justify-end">
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-2 rounded-lg text-white font-semibold transition"
+                    className="px-4 sm:px-6 py-2 rounded-lg text-white font-semibold transition text-sm sm:text-base"
                     style={{ backgroundColor: "#f0453f" }}
                     onMouseEnter={(e) =>
                         (e.target.style.backgroundColor = "#d63a34")
@@ -162,19 +164,19 @@ export default function PricingContent() {
 
             {/* Plans Grid */}
             {!isLoading && plans.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {plans.map((plan) => (
                         <div
                             key={plan.id}
-                            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition border-l-4"
+                            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition border-l-4"
                             style={{ borderLeftColor: "#f0453f" }}
                         >
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-900">
+                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
                                         {plan.type}
                                     </h3>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-xs sm:text-sm text-gray-600">
                                         {formatDuration(plan.duration_days)}
                                     </p>
                                 </div>

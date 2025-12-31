@@ -200,24 +200,26 @@ export default function UsersContent() {
     });
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900">Mijozlar</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    Mijozlar
+                </h2>
+                <p className="text-gray-600 text-sm sm:text-base">
                     Barcha registratsiya qilingan mijozlarni ko'ring va
                     boshqaring.
                 </p>
             </div>
 
             {/* Search and Add Button */}
-            <div className="flex gap-4 items-end">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
                 <div className="flex-1">
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Qidirish
                     </label>
                     <input
                         type="text"
-                        placeholder="Ism, Familiya yoki Telefon bo'yicha qidirish..."
+                        placeholder="Ism, Familiya yoki Telefon..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -225,7 +227,7 @@ export default function UsersContent() {
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-2 rounded-lg text-white font-semibold transition"
+                    className="px-4 sm:px-6 py-2 rounded-lg text-white font-semibold transition whitespace-nowrap"
                     style={{ backgroundColor: "#f0453f" }}
                     onMouseEnter={(e) =>
                         (e.target.style.backgroundColor = "#d63a34")
@@ -243,7 +245,7 @@ export default function UsersContent() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     🔔 Bildirishnomalar
                 </h3>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-4 sm:p-6">
                     {isLoadingNotifications ? (
                         <p className="text-gray-600 text-center py-8">
                             Bildirishnomalar yuklanmoqda...
@@ -253,7 +255,7 @@ export default function UsersContent() {
                             Bildirishnoma yo'q
                         </p>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             {notifications.slice(0, 3).map((notification) => {
                                 const daysLeft = notification.days_left;
                                 const statusDisplay = `Abonement ${daysLeft} kunda tugaydi`;
@@ -261,10 +263,10 @@ export default function UsersContent() {
                                 return (
                                     <div
                                         key={notification.user_id}
-                                        className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition"
+                                        className="flex flex-col sm:flex-row sm:items-start justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:shadow-md transition gap-3"
                                     >
                                         <div className="flex-1">
-                                            <h4 className="font-semibold text-gray-900">
+                                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
                                                 {capitalize(
                                                     notification.first_name
                                                 )}{" "}
@@ -272,10 +274,10 @@ export default function UsersContent() {
                                                     notification.last_name
                                                 )}
                                             </h4>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="text-xs sm:text-sm text-gray-600">
                                                 {notification.phone_number}
                                             </p>
-                                            <div className="flex items-center gap-3 mt-2">
+                                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
                                                 {statusDisplay && (
                                                     <p className="text-xs text-gray-600">
                                                         {statusDisplay}
@@ -352,25 +354,25 @@ export default function UsersContent() {
             ) : (
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full min-w-[600px]">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Ism
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Familiya
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Telefon
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider hidden sm:table-cell">
                                         Tug'ilgan sana
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Status
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Amallar
                                     </th>
                                 </tr>
@@ -380,7 +382,7 @@ export default function UsersContent() {
                                     <tr>
                                         <td
                                             colSpan="6"
-                                            className="px-6 py-4 text-center text-gray-600"
+                                            className="px-3 sm:px-6 py-4 text-center text-gray-600"
                                         >
                                             {searchQuery
                                                 ? "Qidiruvni mos keladigan foydalanuvchi topilmadi"
@@ -393,21 +395,21 @@ export default function UsersContent() {
                                             key={user.id}
                                             className="hover:bg-gray-50"
                                         >
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {capitalize(user.first_name)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
                                                 {capitalize(user.last_name)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
                                                 {user.phone_number}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
                                                 {user.date_of_birth}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm">
                                                 <span
-                                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
                                                         user.is_active
                                                             ? "bg-green-100 text-green-800"
                                                             : "bg-red-100 text-red-800"
@@ -418,7 +420,7 @@ export default function UsersContent() {
                                                         : "Nofa'ol"}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm space-x-2 sm:space-x-3">
                                                 <button
                                                     onClick={() =>
                                                         handleViewUser(user)
@@ -427,7 +429,7 @@ export default function UsersContent() {
                                                     title="Ko'rish"
                                                 >
                                                     <svg
-                                                        className="w-5 h-5 inline"
+                                                        className="w-4 h-4 sm:w-5 sm:h-5 inline"
                                                         fill="currentColor"
                                                         viewBox="0 0 20 20"
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -448,7 +450,7 @@ export default function UsersContent() {
                                                     title="Tahrirlash"
                                                 >
                                                     <svg
-                                                        className="w-5 h-5 inline"
+                                                        className="w-4 h-4 sm:w-5 sm:h-5 inline"
                                                         fill="currentColor"
                                                         viewBox="0 0 20 20"
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -471,7 +473,7 @@ export default function UsersContent() {
                                                     title="O'chirish"
                                                 >
                                                     <svg
-                                                        className="w-5 h-5 inline"
+                                                        className="w-4 h-4 sm:w-5 sm:h-5 inline"
                                                         fill="currentColor"
                                                         viewBox="0 0 20 20"
                                                         xmlns="http://www.w3.org/2000/svg"

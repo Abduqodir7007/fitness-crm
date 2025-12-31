@@ -46,15 +46,15 @@ const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4 sm:mb-6">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                             Yangi mijoz qo'shish
                         </h2>
-                        <p className="text-gray-600 text-sm mt-1">
+                        <p className="text-gray-600 text-xs sm:text-sm mt-1">
                             Mijoz ma'lumotlarini to'ldiring
                         </p>
                     </div>
@@ -69,7 +69,7 @@ const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* First Name and Last Name */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
                                 F.I.O <span className="text-red-600">*</span>
@@ -133,7 +133,7 @@ const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
                     </div>
 
                     {/* Date of Birth and Gender */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
                                 Tug'ilgan sana

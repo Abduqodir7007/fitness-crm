@@ -173,10 +173,12 @@ export default function TrainersContent() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900">Trenerlar</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    Trenerlar
+                </h2>
+                <p className="text-gray-600 text-sm sm:text-base">
                     Barcha trenerlarni ko'ring va boshqaring.
                 </p>
             </div>
@@ -184,7 +186,7 @@ export default function TrainersContent() {
             <div className="flex justify-end">
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-2 rounded-lg text-white font-semibold transition"
+                    className="px-4 sm:px-6 py-2 rounded-lg text-white font-semibold transition text-sm sm:text-base"
                     style={{ backgroundColor: "#f0453f" }}
                     onMouseEnter={(e) =>
                         (e.target.style.backgroundColor = "#d63a34")

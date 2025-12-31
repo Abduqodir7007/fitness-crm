@@ -49,41 +49,49 @@ export default function PaymentsContent() {
     const weeklyProfit = "3,250,000";
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900">To'lovlar</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    To'lovlar
+                </h2>
+                <p className="text-gray-600 text-sm sm:text-base">
                     Barcha to'lovlarni va daromadlarni boshqaring.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-sm text-gray-600">Bugungi Daromad</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                    <p className="text-xs sm:text-sm text-gray-600">
+                        Bugungi Daromad
+                    </p>
                     <p
-                        className="text-2xl font-bold text-gray-900 mt-2"
+                        className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2"
                         style={{ color: "#f0453f" }}
                     >
                         {formatCurrency(dailyProfit)} so'm
                     </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-sm text-gray-600">Haftalik Daromad</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">
+                <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                    <p className="text-xs sm:text-sm text-gray-600">
+                        Haftalik Daromad
+                    </p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                         {weeklyProfit} so'm
                     </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-sm text-gray-600">Oylik Daromad</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">
+                <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                    <p className="text-xs sm:text-sm text-gray-600">
+                        Oylik Daromad
+                    </p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                         {formatCurrency(monthlyProfit)} so'm
                     </p>
                 </div>
             </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                         To'lovlar Tarixi
                     </h3>
                 </div>

@@ -263,18 +263,18 @@ const DashboardContent = memo(function DashboardContent() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             {/* Header with Title and Buttons */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                    <h2 className="text-4xl font-bold text-gray-900">
+                    <h2 className="text-2xl sm:text-4xl font-bold text-gray-900">
                         Admin Dashboard
                     </h2>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-gray-600 mt-1 text-sm sm:text-base">
                         Assalomu alaykum! Bugungi to'liq ko'rsatmalar
                     </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                     <button
                         onClick={handleDownloadStats}
                         disabled={isDownloading}
@@ -358,25 +358,25 @@ const DashboardContent = memo(function DashboardContent() {
                     <p className="text-gray-600">Statistika yuklanmoqda...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                     {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
+                            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition"
                         >
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-xs sm:text-sm text-gray-600">
                                         {stat.label}
                                     </p>
-                                    <p className="text-2xl font-bold text-gray-900 mt-2">
+                                    <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                                         {stat.isProfit
                                             ? stat.value.toLocaleString("uz-UZ")
                                             : stat.value}
                                     </p>
                                 </div>
                                 <div
-                                    className="text-3xl"
+                                    className="text-2xl sm:text-3xl"
                                     style={{ color: stat.color }}
                                 >
                                     {stat.icon}
@@ -388,15 +388,15 @@ const DashboardContent = memo(function DashboardContent() {
             )}
 
             {/* Charts Section */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {/* First Row: Line Graph and Pie Chart */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     {/* Daily Clients Line Chart */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
                             So'nggi 7 kunlik mijozlar
                         </h3>
-                        <div className="h-64">
+                        <div className="h-48 sm:h-64">
                             <svg
                                 width="100%"
                                 height="100%"
