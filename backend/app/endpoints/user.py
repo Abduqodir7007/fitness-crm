@@ -318,7 +318,7 @@ async def get_attendance(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Attendance)
         .options(selectinload(Attendance.user))
-       .where(Attendance.date == date.today())
+        .where(Attendance.date == date.today())
     )
     attendances = result.scalars().all()
     response = []
@@ -378,9 +378,7 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
             data = await websocket.receive_text()
             message = json.loads(data)
             if message.get("type") == "users":
-                query = select(Users).where(
-                    and_(Users.role != "admin", Users.role != "trainer")
-                )
+                query = select(Users).where(Users.is_superuser == False)
                 result = await db.execute(query)
                 users = result.scalars().all()
 
