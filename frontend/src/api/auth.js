@@ -13,7 +13,10 @@ export const authAPI = {
                     "access_token",
                     response.data.access_token
                 );
-                localStorage.setItem("user_role", response.data.role);
+                localStorage.setItem(
+                    "is_superuser",
+                    response.data.is_superuser
+                );
                 localStorage.setItem("token_type", response.data.token_type);
                 if (response.data.refresh_token) {
                     localStorage.setItem(
@@ -25,7 +28,6 @@ export const authAPI = {
 
             return response.data;
         } catch (error) {
-            console.error("Login error:", error);
             throw error;
         }
     },

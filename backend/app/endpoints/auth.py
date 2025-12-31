@@ -65,7 +65,7 @@ async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
             {"phone_number": user.phone_number, "role": user.role}
         )
         return {
-            "role": user.role,
+            "is_superuser": user.is_superuser,
             "access_token": token,
             "refresh_token": refresh_token,
             "token_type": "bearer",

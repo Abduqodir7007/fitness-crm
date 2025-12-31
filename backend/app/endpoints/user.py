@@ -34,7 +34,7 @@ async def get_all_users(
     db: AsyncSession = Depends(get_db),
 ):
 
-    query = select(Users).where(and_(Users.role == "client"))
+    query = select(Users).where(Users.is_superuser == False)
 
     if active_sub:
         query = query.join(Users.subscriptions).where(
