@@ -313,22 +313,19 @@ async def create_attendance(
     return {"message": "Attendance marked successfully"}
 
 
-@router.get("/attendance")
+@router.get("/attendance/list/")
 async def get_attendance(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Attendance)
         .options(selectinload(Attendance.user))
-        .where(Attendance.date == date.today())
+       .where(Attendance.date == date.today())
     )
-
     attendances = result.scalars().all()
-
     response = []
     # TO DO: add response model
     for attendance in attendances:
         response.append(
             {
-                "id": str(attendance.id),
                 "date": attendance.date,
                 "user": (
                     {
@@ -343,7 +340,6 @@ async def get_attendance(db: AsyncSession = Depends(get_db)):
                 ),
             }
         )
-
     return response
 
 

@@ -74,7 +74,7 @@ export const usersAPI = {
 
     getTodayAttendance: async () => {
         try {
-            const response = await client.get("/users/attendance");
+            const response = await client.get("/users/attendance/list/");
             return response.data;
         } catch (error) {
             throw error;
