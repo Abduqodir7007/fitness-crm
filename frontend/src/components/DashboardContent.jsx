@@ -265,7 +265,7 @@ const DashboardContent = memo(function DashboardContent() {
     return (
         <div className="space-y-4 sm:space-y-6">
             {/* Header with Title and Buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex flex-col gap-4">
                 <div>
                     <h2 className="text-2xl sm:text-4xl font-bold text-gray-900">
                         Admin Dashboard
@@ -274,26 +274,33 @@ const DashboardContent = memo(function DashboardContent() {
                         Assalomu alaykum! Bugungi to'liq ko'rsatmalar
                     </p>
                 </div>
-                <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
                     <button
                         onClick={handleDownloadStats}
                         disabled={isDownloading}
-                        className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-2 sm:px-3 py-2 sm:py-1 text-xs sm:text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2"
                     >
-                        <span>📥</span>{" "}
-                        {isDownloading
-                            ? "Yuklanmoqda..."
-                            : "Statistika Yuklash"}
+                        <span>📥</span>
+                        <span className="hidden sm:inline">
+                            {isDownloading
+                                ? "Yuklanmoqda..."
+                                : "Statistika Yuklash"}
+                        </span>
+                        <span className="sm:hidden">
+                            {isDownloading ? "..." : "Yuklash"}
+                        </span>
                     </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2"
+                        className="px-2 sm:px-3 py-2 sm:py-1 text-xs sm:text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition flex items-center justify-center gap-1 sm:gap-2"
                     >
-                        <span>👥</span> Mijoz qo'shish
+                        <span>👥</span>
+                        <span className="hidden sm:inline">Mijoz qo'shish</span>
+                        <span className="sm:hidden">Mijoz</span>
                     </button>
                     <button
                         onClick={() => setIsSubscriptionModalOpen(true)}
-                        className="px-3 py-1 text-sm rounded-lg text-white font-semibold transition"
+                        className="px-2 sm:px-3 py-2 sm:py-1 text-xs sm:text-sm rounded-lg text-white font-semibold transition flex items-center justify-center"
                         style={{ backgroundColor: "#f0453f" }}
                         onMouseEnter={(e) =>
                             (e.target.style.backgroundColor = "#d63a34")
@@ -302,11 +309,14 @@ const DashboardContent = memo(function DashboardContent() {
                             (e.target.style.backgroundColor = "#f0453f")
                         }
                     >
-                        Abonement sotish
+                        <span className="hidden sm:inline">
+                            Abonement sotish
+                        </span>
+                        <span className="sm:hidden">Abonement</span>
                     </button>
                     <button
                         onClick={() => setIsDailySubscriptionModalOpen(true)}
-                        className="px-6 py-2 rounded-lg text-white font-semibold transition"
+                        className="px-2 sm:px-6 py-2 text-xs sm:text-sm rounded-lg text-white font-semibold transition flex items-center justify-center"
                         style={{ backgroundColor: "#10b981" }}
                         onMouseEnter={(e) =>
                             (e.target.style.backgroundColor = "#059669")
@@ -315,7 +325,10 @@ const DashboardContent = memo(function DashboardContent() {
                             (e.target.style.backgroundColor = "#10b981")
                         }
                     >
-                        Kunlik abonement sotish
+                        <span className="hidden sm:inline">
+                            Kunlik abonement sotish
+                        </span>
+                        <span className="sm:hidden">Kunlik</span>
                     </button>
                 </div>
             </div>
