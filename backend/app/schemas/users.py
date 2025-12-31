@@ -30,7 +30,7 @@ class Status(str, Enum):
 class Token(BaseModel):
     access_token: str
     refresh_token: str
-    role: str
+    is_superuser: bool
     token_type: str
 
 
