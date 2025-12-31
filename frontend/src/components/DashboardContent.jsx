@@ -165,7 +165,6 @@ const DashboardContent = memo(function DashboardContent() {
                 setMonthlyData(processedMonthly);
             }
         } catch (err) {
-            console.error("Error fetching dashboard data:", err);
             setError("Dashboard ma'lumotlarini yuklashda xato");
         } finally {
             setLoading(false);
@@ -194,44 +193,6 @@ const DashboardContent = memo(function DashboardContent() {
         }
     }, [error]);
 
-    const recentUsers = [
-        {
-            id: 1,
-            name: "Ali Valiyev",
-            phone: "+998901234567",
-            status: "Faol",
-            joinDate: "2024-11-25",
-        },
-        {
-            id: 2,
-            name: "Nodira Qodir",
-            phone: "+998901234568",
-            status: "Faol",
-            joinDate: "2024-11-24",
-        },
-        {
-            id: 3,
-            name: "Javohir Xo'jayev",
-            phone: "+998901234569",
-            status: "Pauzada",
-            joinDate: "2024-11-23",
-        },
-        {
-            id: 4,
-            name: "Malika Rahimova",
-            phone: "+998901234570",
-            status: "Faol",
-            joinDate: "2024-11-22",
-        },
-        {
-            id: 5,
-            name: "Sardor Umarov",
-            phone: "+998901234571",
-            status: "Tugatilgan",
-            joinDate: "2024-11-20",
-        },
-    ];
-
     const handleAddUser = async (formData) => {
         try {
             await authAPI.signup(
@@ -246,7 +207,6 @@ const DashboardContent = memo(function DashboardContent() {
             // Refresh stats after adding user
             await fetchDashboardData();
         } catch (err) {
-            console.error("Error adding user:", err);
             throw err;
         }
     };
@@ -264,7 +224,6 @@ const DashboardContent = memo(function DashboardContent() {
             // Refresh stats after adding subscription
             await fetchDashboardData();
         } catch (err) {
-            console.error("Error adding subscription:", err);
             // Display backend error message or generic error
             const errorMessage =
                 err.response?.data?.detail || "Obuna yaratishda xato";
@@ -285,7 +244,6 @@ const DashboardContent = memo(function DashboardContent() {
             // Refresh stats after adding subscription
             await fetchDashboardData();
         } catch (err) {
-            console.error("Error adding daily subscription:", err);
             const errorMessage =
                 err.response?.data?.detail || "Kunlik obuna yaratishda xato";
             setError(errorMessage);
@@ -298,7 +256,6 @@ const DashboardContent = memo(function DashboardContent() {
         try {
             await dashboardAPI.downloadStats();
         } catch (err) {
-            console.error("Error downloading stats:", err);
             setError("Statistikani yuklashda xato");
         } finally {
             setIsDownloading(false);
@@ -849,61 +806,6 @@ const DashboardContent = memo(function DashboardContent() {
                             );
                         })}
                     </div>
-                </div>
-            </div>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                        Yangi Mijozlar
-                    </h3>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Ism
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Telefon
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Qo'shilgan Sana
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {recentUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {user.name}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {user.phone}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                user.status === "Faol"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : user.status === "Pauzada"
-                                                    ? "bg-yellow-100 text-yellow-800"
-                                                    : "bg-red-100 text-red-800"
-                                            }`}
-                                        >
-                                            {user.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {user.joinDate}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
