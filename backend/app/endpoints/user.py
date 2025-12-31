@@ -313,6 +313,40 @@ async def create_attendance(
     return {"message": "Attendance marked successfully"}
 
 
+@router.get("/attendance")
+async def get_attendance(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Attendance)
+        .options(selectinload(Attendance.user))
+        .where(Attendance.date == date.today())
+    )
+
+    attendances = result.scalars().all()
+
+    response = []
+    # TO DO: add response model
+    for attendance in attendances:
+        response.append(
+            {
+                "id": str(attendance.id),
+                "date": attendance.date,
+                "user": (
+                    {
+                        "id": str(attendance.user.id),
+                        "first_name": attendance.user.first_name,
+                        "last_name": attendance.user.last_name,
+                        "phone_number": attendance.user.phone_number,
+                        "gender": attendance.user.gender,
+                    }
+                    if attendance.user
+                    else None
+                ),
+            }
+        )
+
+    return response
+
+
 @router.websocket("/ws/trainers")
 async def websocket_trainers_endpoint(
     websocket: WebSocket, db: AsyncSession = Depends(get_db)

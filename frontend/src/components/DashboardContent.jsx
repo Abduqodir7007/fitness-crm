@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo } from "react";
+import { useNavigate } from "react-router-dom";
 import AddUserModal from "./AddUserModal";
 import SubscriptionModal from "./SubscriptionModal";
 import DailySubscriptionModal from "./DailySubscriptionModal";
@@ -7,6 +8,7 @@ import { authAPI } from "../api/auth";
 import { subscriptionAPI } from "../api/subscription";
 
 const DashboardContent = memo(function DashboardContent() {
+    const navigate = useNavigate();
     const [stats, setStats] = useState([
         {
             label: "Jami Mijozlar",
@@ -14,6 +16,7 @@ const DashboardContent = memo(function DashboardContent() {
             icon: "👥",
             color: "#f0453f",
             key: "total_active_users",
+            route: "users",
         },
         {
             label: "Trenerlar",
@@ -21,6 +24,7 @@ const DashboardContent = memo(function DashboardContent() {
             icon: "💪",
             color: "#10b981",
             key: "total_trainers",
+            route: "trainers",
         },
         {
             label: "Bugun Kiritilgan",
@@ -28,6 +32,7 @@ const DashboardContent = memo(function DashboardContent() {
             icon: "📝",
             color: "#3b82f6",
             key: "today_attendance",
+            route: "attendance",
         },
         {
             label: "Faol Obunalar",
@@ -35,6 +40,7 @@ const DashboardContent = memo(function DashboardContent() {
             icon: "✓",
             color: "#f59e0b",
             key: "total_active_subscriptions",
+            route: "reports",
         },
         {
             label: "Kunlik Paketlar",
@@ -42,6 +48,7 @@ const DashboardContent = memo(function DashboardContent() {
             icon: "📦",
             color: "#8b5cf6",
             key: "daily_plans_sold",
+            route: "reports",
         },
         {
             label: "Bugun Foyda",
@@ -50,6 +57,7 @@ const DashboardContent = memo(function DashboardContent() {
             color: "#06b6d4",
             key: "daily_profit",
             isProfit: true,
+            route: "reports",
         },
     ]);
     const [loading, setLoading] = useState(true);
@@ -375,7 +383,11 @@ const DashboardContent = memo(function DashboardContent() {
                     {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition"
+                            onClick={() =>
+                                stat.route &&
+                                navigate(`/dashboard/${stat.route}`)
+                            }
+                            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition cursor-pointer hover:scale-[1.02]"
                         >
                             <div className="flex items-center justify-between">
                                 <div>

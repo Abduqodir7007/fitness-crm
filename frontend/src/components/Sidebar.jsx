@@ -12,6 +12,7 @@ const Sidebar = memo(function Sidebar({
     const menuItems = [
         { id: "dashboard", label: "Dashboard", icon: "🏠" },
         { id: "users", label: "Mijozlar", icon: "👥" },
+        { id: "attendance", label: "Davomat", icon: "📝" },
         { id: "pricing", label: "Tariflar", icon: "📋" },
         { id: "trainers", label: "Trenerlar", icon: "💪" },
         { id: "reports", label: "To'lovlar", icon: "📊" },

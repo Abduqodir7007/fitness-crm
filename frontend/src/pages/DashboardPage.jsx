@@ -6,6 +6,7 @@ import UsersContent from "../components/UsersContent";
 import PricingContent from "../components/PricingContent";
 import TrainersContent from "../components/TrainersContent";
 import PaymentsContent from "../components/PaymentsContent";
+import AttendanceContent from "../components/AttendanceContent";
 
 const DashboardPageContent = memo(function DashboardPageContent({
     activeTab,
@@ -25,6 +26,8 @@ const DashboardPageContent = memo(function DashboardPageContent({
                 return <TrainersContent />;
             case "reports":
                 return <PaymentsContent />;
+            case "attendance":
+                return <AttendanceContent />;
             default:
                 return <DashboardContent />;
         }

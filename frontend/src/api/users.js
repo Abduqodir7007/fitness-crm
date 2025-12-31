@@ -68,7 +68,15 @@ export const usersAPI = {
             const response = await client.post("/users/attendance");
             return response.data;
         } catch (error) {
-            console.error("Mark attendance error:", error);
+            throw error;
+        }
+    },
+
+    getTodayAttendance: async () => {
+        try {
+            const response = await client.get("/users/attendance");
+            return response.data;
+        } catch (error) {
             throw error;
         }
     },
