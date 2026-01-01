@@ -795,7 +795,7 @@ const DashboardContent = memo(function DashboardContent() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Oylik daromad
                     </h3>
-                    <div className="h-64 flex items-end justify-between px-2 relative">
+                    <div className="h-64 flex items-end justify-start gap-8 px-4 relative">
                         {monthlyData.map((item, index) => {
                             const maxProfit = Math.max(
                                 ...monthlyData.map((d) => d.profit)
@@ -804,12 +804,12 @@ const DashboardContent = memo(function DashboardContent() {
                             return (
                                 <div
                                     key={item.month}
-                                    className="flex flex-col items-center relative group"
+                                    className="flex flex-col items-center relative group flex-1 max-w-20"
                                     onMouseEnter={() => setHoveredBar(index)}
                                     onMouseLeave={() => setHoveredBar(null)}
                                 >
                                     <div
-                                        className={`w-8 bg-gradient-to-t from-red-400 to-red-300 rounded-t transition ${
+                                        className={`w-12 bg-gradient-to-t from-red-400 to-red-300 rounded-t transition ${
                                             isHovered
                                                 ? "opacity-100 shadow-lg"
                                                 : "opacity-80 hover:opacity-100"

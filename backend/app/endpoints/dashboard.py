@@ -165,11 +165,11 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
 @router.get("/monthly/payment")
 async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
 
-    response = await redis.get(settings.MONTHLY_PROFIT)
+    # response = await redis.get(settings.MONTHLY_PROFIT)
 
-    if response:
-        # print("Cache hit")
-        return json.loads(response)
+    # if response:
+    #     # print("Cache hit")
+    #     return json.loads(response)
 
     today = date.today()
     start_date = today.replace(day=1) - relativedelta(months=5)
@@ -185,17 +185,23 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
 
     monthly_profit = {}
     for payment in payments:
+        # Use year-month as key for proper chronological sorting
+        month_key = payment.payment_date.strftime("%Y-%m")
         month_name = payment.payment_date.strftime("%B")
-        if month_name not in monthly_profit:
-            monthly_profit[month_name] = 0
-        monthly_profit[month_name] += payment.amount or 0
+        if month_key not in monthly_profit:
+            monthly_profit[month_key] = {"name": month_name, "profit": 0}
+        monthly_profit[month_key]["profit"] += payment.amount or 0
 
-    sorted_months = sorted(monthly_profit.items())
+    # Sort by year-month key (chronological order)
+    sorted_months = sorted(monthly_profit.items(), key=lambda x: x[0])
 
-    response = [{"month": month, "profit": profit} for month, profit in sorted_months]
-    await redis.set(
-        settings.MONTHLY_PROFIT, json.dumps(response), ex=60 * 60 * 24 * 10
-    )  # cached for 10 days
+    response = [
+        {"month": data["name"], "profit": data["profit"]} for _, data in sorted_months
+    ]
+    # await redis.set(
+    #     settings.MONTHLY_PROFIT, json.dumps(response), ex=60 * 60 * 24 * 10
+    # )  # cached for 10 days
+
     return response
 
 
