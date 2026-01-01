@@ -78,18 +78,25 @@ const DashboardContent = memo(function DashboardContent() {
     const fetchDashboardData = useCallback(async () => {
         setLoading(true);
         try {
-            const [userStatsRes, subStatsRes, dailyStatsRes, monthlyStatsRes] =
-                await Promise.all([
-                    dashboardAPI.getUserStats(),
-                    dashboardAPI.getSubscriptionStats(),
-                    dashboardAPI.getDailyStats(),
-                    dashboardAPI.getMonthlyPayment(),
-                ]);
+            const [
+                userStatsRes,
+                subStatsRes,
+                dailyStatsRes,
+                monthlyStatsRes,
+                subscriptionPaymentRes,
+            ] = await Promise.all([
+                dashboardAPI.getUserStats(),
+                dashboardAPI.getSubscriptionStats(),
+                dashboardAPI.getDailyStats(),
+                dashboardAPI.getMonthlyPayment(),
+                dashboardAPI.getSubscriptionPayment(),
+            ]);
 
             // Merge the responses
             const userData = userStatsRes[0] || {};
             const subDataArray = subStatsRes || [];
-            const dailyData = dailyStatsRes || {};
+            const dailyData =
+                { ...dailyStatsRes, ...subscriptionPaymentRes } || {};
 
             // Extract pie chart data and total subscriptions
             const pieChartItems = subDataArray.filter((item) => item.type);

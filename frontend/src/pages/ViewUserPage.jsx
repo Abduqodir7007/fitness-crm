@@ -75,7 +75,7 @@ export default function ViewUserPage() {
         ) {
             try {
                 await usersAPI.delete(userDetails.id);
-                navigate("/dashboard/users");
+                navigate(-1);
             } catch (err) {
                 setError("Foydalanuvchini o'chirishda xato");
                 console.error("Error deleting user:", err);
@@ -101,7 +101,7 @@ export default function ViewUserPage() {
                         {error || "Foydalanuvchi topilmadi"}
                     </p>
                     <button
-                        onClick={() => navigate("/dashboard/users")}
+                        onClick={() => navigate(-1)}
                         className="px-6 py-2 rounded-lg text-white font-semibold transition"
                         style={{ backgroundColor: "#f0453f" }}
                     >
@@ -118,7 +118,7 @@ export default function ViewUserPage() {
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
                 <div className="px-4 sm:px-8 py-4 sm:py-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                     <button
-                        onClick={() => navigate("/dashboard/users")}
+                        onClick={() => navigate(-1)}
                         className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium self-start"
                     >
                         <svg

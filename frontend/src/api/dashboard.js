@@ -61,6 +61,18 @@ export const dashboardAPI = {
         }
     },
 
+    getSubscriptionPayment: async () => {
+        try {
+            const response = await client.get(
+                "/dashboard/subscription/payment"
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Get subscription payment error:", error);
+            throw error;
+        }
+    },
+
     downloadStats: async () => {
         try {
             const response = await client.get("/dashboard/download/stats", {

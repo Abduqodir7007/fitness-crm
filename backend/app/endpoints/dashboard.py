@@ -153,7 +153,6 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         start_date += timedelta(days=1)
 
     response["weekly_clients"] = weekly_clients_list
-
     await redis.set(
         settings.WEEKLY_CLIENTS,
         json.dumps(weekly_clients_list),
