@@ -49,11 +49,22 @@ class DailySubscriptionCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
+    id: UUID
     first_name: str
     last_name: str
+    phone_number: str
+
+    @field_serializer("id")
+    def serialize_id(self, id: UUID) -> str:
+        return str(id)
 
 
 class PaymentResponse(BaseModel):
     user: UserResponse
     amount: int
     payment_date: date
+
+
+class AttendanceResponse(BaseModel):
+    user: UserResponse
+    date: date

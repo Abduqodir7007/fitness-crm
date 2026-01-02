@@ -118,9 +118,6 @@ export default function AttendanceContent() {
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                                         Telefon
                                     </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                                        Jinsi
-                                    </th>
                                     <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
                                         Ko'rish
                                     </th>
@@ -129,7 +126,7 @@ export default function AttendanceContent() {
                             <tbody className="divide-y divide-gray-200">
                                 {attendances.map((attendance, index) => (
                                     <tr
-                                        key={attendance.id}
+                                        key={attendance.user?.id || index}
                                         className="hover:bg-gray-50 transition"
                                     >
                                         <td className="px-6 py-4 text-sm text-gray-600">
@@ -162,14 +159,6 @@ export default function AttendanceContent() {
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {attendance.user?.phone_number ||
                                                 "-"}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {attendance.user?.gender === "male"
-                                                ? "Erkak"
-                                                : attendance.user?.gender ===
-                                                  "female"
-                                                ? "Ayol"
-                                                : "-"}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center">
@@ -214,7 +203,7 @@ export default function AttendanceContent() {
                     <div className="sm:hidden space-y-3">
                         {attendances.map((attendance, index) => (
                             <div
-                                key={attendance.id}
+                                key={attendance.user?.id || index}
                                 className="bg-white rounded-lg shadow p-4"
                             >
                                 <div className="flex items-center justify-between">

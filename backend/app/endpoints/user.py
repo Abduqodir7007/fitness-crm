@@ -5,6 +5,7 @@ from sqlalchemy.future import select
 
 
 from ..schemas.users import UserListResponse, UpdateUserPassword, UpdateUserInformation
+from ..schemas.admin import AttendanceResponse
 from ..models import Users, Subscriptions, Attendance
 from ..websocket import manager
 from ..database import get_db
@@ -313,7 +314,11 @@ async def create_attendance(
     return {"message": "Attendance marked successfully"}
 
 
-@router.get("/attendance/list/")
+@router.get(
+    "/attendance/list/",
+    status_code=status.HTTP_200_OK,
+    response_model=list[AttendanceResponse],
+)
 async def get_attendance(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Attendance)
@@ -321,26 +326,8 @@ async def get_attendance(db: AsyncSession = Depends(get_db)):
         .where(Attendance.date == date.today())
     )
     attendances = result.scalars().all()
-    response = []
-    # TO DO: add response model
-    for attendance in attendances:
-        response.append(
-            {
-                "date": attendance.date,
-                "user": (
-                    {
-                        "id": str(attendance.user.id),
-                        "first_name": attendance.user.first_name,
-                        "last_name": attendance.user.last_name,
-                        "phone_number": attendance.user.phone_number,
-                        "gender": attendance.user.gender,
-                    }
-                    if attendance.user
-                    else None
-                ),
-            }
-        )
-    return response
+
+    return attendances
 
 
 @router.websocket("/ws/trainers")
