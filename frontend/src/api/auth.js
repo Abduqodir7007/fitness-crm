@@ -3,12 +3,15 @@ import client from "./client";
 export const authAPI = {
     login: async (phone_number, password) => {
         try {
+            console.log("[AUTH] Attempting login with:", { phone_number });
             const response = await client.post("/auth/login", {
                 phone_number,
                 password,
             });
+            console.log("[AUTH] Login response:", response.data);
 
             if (response.data.access_token) {
+                console.log("[AUTH] Token received, storing in localStorage");
                 localStorage.setItem(
                     "access_token",
                     response.data.access_token
@@ -17,6 +20,10 @@ export const authAPI = {
                     "is_superuser",
                     response.data.is_superuser
                 );
+                // Set user_role based on is_superuser for ProtectedRoute
+                const role = response.data.is_superuser ? "admin" : "client";
+                console.log("[AUTH] Setting user_role:", role);
+                localStorage.setItem("user_role", role);
                 localStorage.setItem("token_type", response.data.token_type);
                 if (response.data.refresh_token) {
                     localStorage.setItem(

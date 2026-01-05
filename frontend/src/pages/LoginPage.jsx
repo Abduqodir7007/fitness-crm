@@ -14,17 +14,29 @@ export default function LoginPage() {
         e.preventDefault();
         setError(null);
         setLoading(true);
+        console.log("[LOGIN] Form submitted");
 
         try {
             const response = await authAPI.login(phone_number, password);
+            console.log("[LOGIN] Response received:", response);
+            console.log("[LOGIN] is_superuser:", response.is_superuser);
+            console.log("[LOGIN] localStorage after login:", {
+                access_token: localStorage.getItem("access_token"),
+                user_role: localStorage.getItem("user_role"),
+                is_superuser: localStorage.getItem("is_superuser"),
+            });
 
             // Redirect based on is_superuser
             if (response.is_superuser) {
+                console.log("[LOGIN] Redirecting to /dashboard");
                 navigate("/dashboard");
             } else {
+                console.log("[LOGIN] Redirecting to /attendance");
                 navigate("/attendance");
             }
         } catch (err) {
+            console.error("[LOGIN] Error:", err);
+            console.error("[LOGIN] Error response:", err.response);
             setError(
                 err.response?.data?.detail || "Login failed. Please try again."
             );
