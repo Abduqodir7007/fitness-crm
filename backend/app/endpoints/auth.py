@@ -71,7 +71,7 @@ async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
             "token_type": "bearer",
         }
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid phone number or password",
     )
