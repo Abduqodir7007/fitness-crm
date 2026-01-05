@@ -28,7 +28,7 @@ from fastapi import (
 router = APIRouter(prefix="/users", tags=["User Management"])
 
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=list[UserListResponse])
+@router.get("", status_code=status.HTTP_200_OK, response_model=list[UserListResponse])
 async def get_all_users(
     q: str = Query(None),
     active_sub: bool = Query(None),
@@ -124,7 +124,6 @@ async def get_current_user_info(
     return response
 
 
-# IMPORTANT: Static routes must come BEFORE dynamic routes like /{user_id}
 @router.get(
     "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
 )
