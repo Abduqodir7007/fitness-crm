@@ -124,6 +124,41 @@ async def get_current_user_info(
     return response
 
 
+# IMPORTANT: Static routes must come BEFORE dynamic routes like /{user_id}
+@router.get(
+    "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
+)
+async def get_trainers(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Users).where(and_(Users.role == "trainer", Users.is_active == True))
+    )
+    trainers = result.scalars().all()
+    return trainers
+
+
+@router.get("/trainer/{trainer_id}", status_code=status.HTTP_200_OK)
+async def get_trainer_by_id(trainer_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Users).where(Users.id == trainer_id))
+    trainer = result.scalars().first()
+
+    if not trainer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trainer not found",
+        )
+
+    response = {
+        "id": trainer.id,
+        "first_name": trainer.first_name,
+        "last_name": trainer.last_name,
+        "phone_number": trainer.phone_number,
+        "date_of_birth": trainer.date_of_birth,
+        "gender": trainer.gender,
+    }
+
+    return response
+
+
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
@@ -232,40 +267,6 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
     await db.delete(user)
     await db.commit()
     return {"message": "User deleted successfully"}
-
-
-@router.get(
-    "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
-)
-async def get_trainers(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Users).where(and_(Users.role == "trainer", Users.is_active == True))
-    )
-    trainers = result.scalars().all()
-    return trainers
-
-
-@router.get("/trainer/{trainer_id}", status_code=status.HTTP_200_OK)
-async def get_trainer_by_id(trainer_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Users).where(Users.id == trainer_id))
-    trainer = result.scalars().first()
-
-    if not trainer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Trainer not found",
-        )
-
-    response = {
-        "id": trainer.id,
-        "first_name": trainer.first_name,
-        "last_name": trainer.last_name,
-        "phone_number": trainer.phone_number,
-        "date_of_birth": trainer.date_of_birth,
-        "gender": trainer.gender,
-    }
-
-    return response
 
 
 @router.get("/trainers/{trainer_id}/clients/", status_code=status.HTTP_200_OK)
