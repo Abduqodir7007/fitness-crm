@@ -32,18 +32,28 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
         }
     }, [isOpen]);
 
-    const fetchUsers = async () => {
+    // Fetch users with search support
+    const fetchUsers = async (search = "") => {
         setIsLoadingUsers(true);
         try {
-            const data = await usersAPI.getAll();
+            const data = await usersAPI.getAll(1, 100, search);
             setUsers(data);
         } catch (err) {
-            console.error("Error fetching users:", err);
             setError("Foydalanuvchilarni yuklashda xato");
         } finally {
             setIsLoadingUsers(false);
         }
     };
+
+    // Debounced search effect
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (isOpen) {
+                fetchUsers(searchUser);
+            }
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchUser, isOpen]);
 
     const fetchPlans = async () => {
         setIsLoadingPlans(true);
@@ -51,23 +61,14 @@ export default function SubscriptionModal({ isOpen, onClose, onSubmit }) {
             const data = await pricingAPI.getAll();
             setPlans(data);
         } catch (err) {
-            console.error("Error fetching plans:", err);
             setError("Tariflarni yuklashda xato");
         } finally {
             setIsLoadingPlans(false);
         }
     };
 
-    const filteredUsers = users
-        .filter((user) => user.role === "client") // Only show clients
-        .filter((user) => {
-            const query = searchUser.toLowerCase();
-            return (
-                user.first_name?.toLowerCase().includes(query) ||
-                user.last_name?.toLowerCase().includes(query) ||
-                user.phone_number?.toLowerCase().includes(query)
-            );
-        });
+    // Users are already filtered by backend (role=client), just use them directly
+    const filteredUsers = users;
 
     const handleSubmit = async (e) => {
         e.preventDefault();

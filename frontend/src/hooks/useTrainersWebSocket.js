@@ -21,7 +21,6 @@ export const useTrainersWebSocket = () => {
                 const ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {
-                    console.log("Trainers WebSocket connected");
                     ws.send(JSON.stringify({ type: "trainers" }));
                 };
 
@@ -34,19 +33,16 @@ export const useTrainersWebSocket = () => {
                             setError(null);
                         }
                     } catch (err) {
-                        console.error("WebSocket message error:", err);
                         setError("Murabbiylarni yuklashda xato");
                         setIsLoading(false);
                     }
                 };
 
-                ws.onerror = (error) => {
-                    console.error("WebSocket error:", error);
+                ws.onerror = () => {
                     setError("Murabbiylarni yuklashda xato");
                 };
 
                 ws.onclose = () => {
-                    console.log("Trainers WebSocket disconnected");
                     // Try to reconnect after 5 seconds
                     reconnectTimeoutRef.current = setTimeout(() => {
                         connectWebSocket();
@@ -55,7 +51,6 @@ export const useTrainersWebSocket = () => {
 
                 websocketRef.current = ws;
             } catch (err) {
-                console.error("Error setting up WebSocket:", err);
                 setError("Murabbiylarni yuklashda xato");
             }
         };

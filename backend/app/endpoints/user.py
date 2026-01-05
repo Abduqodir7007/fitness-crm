@@ -367,7 +367,9 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
             data = await websocket.receive_text()
             message = json.loads(data)
             if message.get("type") == "users":
-                query = select(Users).where(Users.is_superuser == False)
+                query = select(Users).where(
+                    and_(Users.is_superuser == False, Users.role == "client")
+                )
                 result = await db.execute(query)
                 users = result.scalars().all()
 

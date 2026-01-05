@@ -1,14 +1,13 @@
 import client from "./client";
 
 export const usersAPI = {
-    getAll: async (page = 1, limit = 10) => {
+    getAll: async (page = 1, limit = 10, search = "") => {
         try {
-            const response = await client.get("/users", {
-                params: { page, limit },
-            });
+            const params = { page, limit };
+            if (search) params.q = search;
+            const response = await client.get("/users", { params });
             return response.data;
         } catch (error) {
-            console.error("Get users error:", error);
             throw error;
         }
     },
@@ -18,7 +17,6 @@ export const usersAPI = {
             const response = await client.get(`/users/${userId}`);
             return response.data;
         } catch (error) {
-            console.error("Get user error:", error);
             throw error;
         }
     },
@@ -28,7 +26,6 @@ export const usersAPI = {
             const response = await client.post("/users", userData);
             return response.data;
         } catch (error) {
-            console.error("Create user error:", error);
             throw error;
         }
     },
@@ -38,7 +35,6 @@ export const usersAPI = {
             const response = await client.put(`/users/${userId}`, userData);
             return response.data;
         } catch (error) {
-            console.error("Update user error:", error);
             throw error;
         }
     },
@@ -48,7 +44,6 @@ export const usersAPI = {
             const response = await client.delete(`/users/delete/${userId}`);
             return response.data;
         } catch (error) {
-            console.error("Delete user error:", error);
             throw error;
         }
     },
@@ -58,7 +53,6 @@ export const usersAPI = {
             const response = await client.get("/users/me");
             return response.data;
         } catch (error) {
-            console.error("Get current user error:", error);
             throw error;
         }
     },
@@ -86,7 +80,6 @@ export const usersAPI = {
             const response = await client.get("/users/trainers");
             return response.data;
         } catch (error) {
-            console.error("Get trainers error:", error);
             throw error;
         }
     },
@@ -96,7 +89,6 @@ export const usersAPI = {
             const response = await client.get(`/users/trainer/${trainerId}`);
             return response.data;
         } catch (error) {
-            console.error("Get trainer error:", error);
             throw error;
         }
     },
@@ -108,7 +100,6 @@ export const usersAPI = {
             );
             return response.data;
         } catch (error) {
-            console.error("Get trainer clients error:", error);
             throw error;
         }
     },

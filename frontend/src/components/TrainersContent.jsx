@@ -4,6 +4,7 @@ import { capitalize } from "../utils/capitalize";
 import AddTrainerModal from "./AddTrainerModal";
 import EditUserModal from "./EditUserModal";
 import { authAPI } from "../api/auth";
+import client from "../api/client";
 
 export default function TrainersContent() {
     const navigate = useNavigate();
@@ -19,23 +20,9 @@ export default function TrainersContent() {
     const fetchTrainers = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/users`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem(
-                            "access_token"
-                        )}`,
-                    },
-                }
-            );
-            if (response.ok) {
-                const data = await response.json();
-                // Filter trainers only
-                const trainersOnly = data.filter(
-                    (user) => user.role === "trainer"
-                );
-                setTrainers(trainersOnly);
+            const response = await client.get("/users/trainers");
+            if (response.data) {
+                setTrainers(response.data);
             }
         } catch (err) {
             console.error("Error fetching trainers:", err);
@@ -58,7 +45,6 @@ export default function TrainersContent() {
             const ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                console.log("Trainers WebSocket connected");
                 ws.send(JSON.stringify({ type: "trainers" }));
             };
 
@@ -69,16 +55,15 @@ export default function TrainersContent() {
                         setTrainers(message.data);
                     }
                 } catch (err) {
-                    console.error("WebSocket message error:", err);
+                    // Silent error handling
                 }
             };
 
-            ws.onerror = (error) => {
-                console.error("WebSocket error:", error);
+            ws.onerror = () => {
+                // Silent error handling
             };
 
             ws.onclose = () => {
-                console.log("Trainers WebSocket disconnected");
                 // Try to reconnect after 5 seconds
                 setTimeout(() => {
                     setupWebSocket();
@@ -87,7 +72,7 @@ export default function TrainersContent() {
 
             websocketRef.current = ws;
         } catch (err) {
-            console.error("Error setting up WebSocket:", err);
+            // Silent error handling
         }
     };
 
@@ -144,18 +129,10 @@ export default function TrainersContent() {
     const handleDeleteTrainer = async (trainerId) => {
         if (window.confirm("Haqiqatan ham bu trenerni o'chirmoqchisiz?")) {
             try {
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/users/delete/${trainerId}`,
-                    {
-                        method: "DELETE",
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem(
-                                "access_token"
-                            )}`,
-                        },
-                    }
+                const response = await client.delete(
+                    `/users/delete/${trainerId}`
                 );
-                if (response.ok) {
+                if (response.status === 200) {
                     // WebSocket will broadcast the update
                     if (websocketRef.current?.readyState === WebSocket.OPEN) {
                         websocketRef.current.send(

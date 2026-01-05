@@ -73,7 +73,6 @@ export default function UsersContent() {
             const ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                console.log("WebSocket connected");
                 // Request initial users list
                 ws.send(JSON.stringify({ type: "users" }));
             };
@@ -85,16 +84,15 @@ export default function UsersContent() {
                         setUsers(message.data);
                     }
                 } catch (err) {
-                    console.error("Error parsing WebSocket message:", err);
+                    // Silent error handling
                 }
             };
 
-            ws.onerror = (error) => {
-                console.error("WebSocket error:", error);
+            ws.onerror = () => {
+                // Silent error handling
             };
 
             ws.onclose = () => {
-                console.log("WebSocket disconnected");
                 // Try to reconnect after 5 seconds
                 setTimeout(() => {
                     setupWebSocket();
@@ -103,7 +101,7 @@ export default function UsersContent() {
 
             websocketRef.current = ws;
         } catch (err) {
-            console.error("Error setting up WebSocket:", err);
+            // Silent error handling
         }
     };
 

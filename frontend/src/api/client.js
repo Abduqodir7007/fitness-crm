@@ -1,8 +1,10 @@
 import axios from "axios";
 import { authAPI } from "./auth";
 
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
 const client = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
+    baseURL: apiUrl,
     headers: {
         "Content-Type": "application/json",
     },

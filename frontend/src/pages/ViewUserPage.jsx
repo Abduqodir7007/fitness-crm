@@ -23,11 +23,8 @@ export default function ViewUserPage() {
         setError(null);
         try {
             const details = await usersAPI.getById(userId);
-            console.log("User Details Received:", details);
-            console.log("Subscriptions:", details?.subscriptions);
             setUserDetails(details);
         } catch (err) {
-            console.error("Error fetching user details:", err);
             setError("Foydalanuvchi ma'lumotlarini yuklashda xato");
         } finally {
             setLoading(false);
