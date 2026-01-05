@@ -20,6 +20,9 @@ origins = [
     "http://127.0.0.1:5173",
     "http://142.93.167.210",
     "http://142.93.167.210:80",
+    "https://fitness.vayzer.uz",
+    "https://vayzer.uz",
+
 ]
 
 app.add_middleware(
