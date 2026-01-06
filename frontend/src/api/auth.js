@@ -17,9 +17,8 @@ export const authAPI = {
                     "is_superuser",
                     response.data.is_superuser
                 );
-                // Set user_role based on is_superuser for ProtectedRoute
-                const role = response.data.is_superuser ? "admin" : "client";
-                localStorage.setItem("user_role", role);
+                // Store role from backend response
+                localStorage.setItem("user_role", response.data.role);
                 localStorage.setItem("token_type", response.data.token_type);
                 if (response.data.refresh_token) {
                     localStorage.setItem(

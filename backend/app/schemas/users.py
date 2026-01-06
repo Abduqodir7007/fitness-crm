@@ -1,6 +1,5 @@
 from pydantic import (
     BaseModel,
-    ValidationError,
     field_serializer,
     field_validator,
     model_validator,
@@ -31,6 +30,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     is_superuser: bool
+    role: str
     token_type: str
 
 
@@ -112,7 +112,6 @@ class UserListResponse(BaseModel):
     role: UserRole | None = None
     is_active: bool | None = True
 
-
     @field_validator("gender", mode="before")
     @classmethod
     def normalize_gender(cls, v):
@@ -144,13 +143,11 @@ class UpdateUserPassword(BaseModel):
     password: str
     confirm_password: str
 
-
     @field_validator("password", "confirm_password")
     @classmethod
     def validate_password(cls, password: str):
         if len(password) < 8:
             raise ValueError("Password must be at least 8 characters long.")
-
 
     @model_validator(mode="after")
     def password_match(self):

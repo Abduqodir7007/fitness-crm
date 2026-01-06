@@ -66,6 +66,7 @@ async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
         )
         return {
             "is_superuser": user.is_superuser,
+            "role": user.role,
             "access_token": token,
             "refresh_token": refresh_token,
             "token_type": "bearer",

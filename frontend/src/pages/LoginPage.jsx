@@ -18,11 +18,18 @@ export default function LoginPage() {
         try {
             const response = await authAPI.login(phone_number, password);
 
-            // Redirect based on is_superuser
-            if (response.is_superuser) {
-                navigate("/dashboard");
-            } else {
-                navigate("/attendance");
+            // Redirect based on user role
+            switch (response.role) {
+                case "admin":
+                    navigate("/dashboard");
+                    break;
+                case "trainer":
+                    navigate("/trainer-dashboard");
+                    break;
+                case "client":
+                default:
+                    navigate("/attendance");
+                    break;
             }
         } catch (err) {
             setError(

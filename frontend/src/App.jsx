@@ -4,6 +4,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ViewUserPage from "./pages/ViewUserPage";
 import ClientAttendancePage from "./pages/ClientAttendancePage";
 import TrainerDetailPage from "./pages/TrainerDetailPage";
+import TrainerDashboardPage from "./pages/TrainerDashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -37,6 +38,24 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/trainer/:trainerId"
+                element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                        <TrainerDetailPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Trainer Routes */}
+            <Route
+                path="/trainer-dashboard"
+                element={
+                    <ProtectedRoute allowedRoles={["trainer"]}>
+                        <TrainerDashboardPage />
+                    </ProtectedRoute>
+                }
+            />
 
             {/* Client Routes */}
             <Route
@@ -44,16 +63,6 @@ function App() {
                 element={
                     <ProtectedRoute allowedRoles={["client"]}>
                         <ClientAttendancePage />
-                    </ProtectedRoute>
-                }
-            />
-
-            {/* Trainer Routes */}
-            <Route
-                path="/trainer/:trainerId"
-                element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                        <TrainerDetailPage />
                     </ProtectedRoute>
                 }
             />
