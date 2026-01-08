@@ -77,11 +77,13 @@ async def get_current_user_info(
         )
 
     response = {
+        "id": str(user_data.id),
         "first_name": user_data.first_name,
         "last_name": user_data.last_name,
         "phone_number": user_data.phone_number,
         "date_of_birth": user_data.date_of_birth,
         "gender": user_data.gender,
+        "role": user_data.role,
         "is_active": user_data.is_active,
         "payments": (
             [

@@ -68,7 +68,7 @@ export const authAPI = {
 
     getCurrentUser: async () => {
         try {
-            const response = await client.get("/auth/me");
+            const response = await client.get("/users/me");
             return response.data;
         } catch (error) {
             throw error;

@@ -16,7 +16,9 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await authAPI.login(phone_number, password);
+            // Prepend +998 to the phone number
+            const fullPhoneNumber = `+998${phone_number}`;
+            const response = await authAPI.login(fullPhoneNumber, password);
 
             // Redirect based on user role
             switch (response.role) {
@@ -76,25 +78,38 @@ export default function LoginPage() {
                     {/* Login Field */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-2">
-                            Login (telefon/username)
+                            Telefon raqam
                         </label>
-                        <input
-                            type="tel"
-                            value={phone_number}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            placeholder="+998 90 123 45 67"
-                            className="w-full px-4 py-3 border rounded-lg outline-none transition focus:ring-2 focus:border-transparent"
-                            style={{
-                                borderColor: "#f0453f",
-                                boxShadow: "var(--shadow)",
-                            }}
-                            onFocus={(e) =>
+                        <div className="flex">
+                            <span
+                                className="inline-flex items-center px-4 py-3 border border-r-0 rounded-l-lg bg-gray-50 text-gray-600 font-medium"
+                                style={{ borderColor: "#f0453f" }}
+                            >
+                                +998
+                            </span>
+                            <input
+                                type="tel"
+                                value={phone_number}
+                                onChange={(e) => {
+                                    // Only allow digits and limit to 9 characters
+                                    const value = e.target.value.replace(/\D/g, "").slice(0, 9);
+                                    setPhoneNumber(value);
+                                }}
+                                placeholder="90 123 45 67"
+                                maxLength={9}
+                                className="flex-1 px-4 py-3 border rounded-r-lg outline-none transition focus:ring-2 focus:border-transparent"
+                                style={{
+                                    borderColor: "#f0453f",
+                                    boxShadow: "var(--shadow)",
+                                }}
+                                onFocus={(e) =>
                                 (e.target.style.boxShadow =
                                     "0 0 0 2px rgba(240, 69, 63, 0.2)")
-                            }
-                            onBlur={(e) => (e.target.style.boxShadow = "none")}
-                            required
-                        />
+                                }
+                                onBlur={(e) => (e.target.style.boxShadow = "none")}
+                                required
+                            />
+                        </div>
                     </div>
 
                     {/* Password Field */}
@@ -114,8 +129,8 @@ export default function LoginPage() {
                                     boxShadow: "var(--shadow)",
                                 }}
                                 onFocus={(e) =>
-                                    (e.target.style.boxShadow =
-                                        "0 0 0 2px rgba(240, 69, 63, 0.2)")
+                                (e.target.style.boxShadow =
+                                    "0 0 0 2px rgba(240, 69, 63, 0.2)")
                                 }
                                 onBlur={(e) =>
                                     (e.target.style.boxShadow = "none")

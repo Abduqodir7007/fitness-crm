@@ -33,6 +33,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this phone number already exists",
         )
+    
     hashed_password = await hash_password(user_in.password)
     new_user = Users(
         first_name=user_in.first_name,

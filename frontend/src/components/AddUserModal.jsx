@@ -26,7 +26,12 @@ const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
         setLoading(true);
 
         try {
-            await onSubmit(formData);
+            // Prepend +998 to the phone number
+            const submitData = {
+                ...formData,
+                phone_number: `+998${formData.phone_number}`,
+            };
+            await onSubmit(submitData);
             setFormData({
                 first_name: "",
                 last_name: "",
@@ -105,15 +110,27 @@ const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
                         <label className="block text-sm font-semibold text-gray-900 mb-2">
                             Telefon <span className="text-red-600">*</span>
                         </label>
-                        <input
-                            type="tel"
-                            name="phone_number"
-                            value={formData.phone_number}
-                            onChange={handleChange}
-                            placeholder="+998 90 123 45 67"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            required
-                        />
+                        <div className="flex">
+                            <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-600 font-medium text-sm">
+                                +998
+                            </span>
+                            <input
+                                type="tel"
+                                name="phone_number"
+                                value={formData.phone_number}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, "").slice(0, 9);
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        phone_number: value,
+                                    }));
+                                }}
+                                placeholder="90 123 45 67"
+                                maxLength={9}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                required
+                            />
+                        </div>
                     </div>
 
                     {/* Password */}

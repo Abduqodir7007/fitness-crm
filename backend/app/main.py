@@ -20,7 +20,6 @@ origins = [
     "http://127.0.0.1:5173",
     "https://fitness.vayzer.uz",
     "https://vayzer.uz",
-
 ]
 
 app.add_middleware(
@@ -35,3 +34,8 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(user.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
+
+
+@app.get("/")
+async def home():
+    return {"message": "Welcome to the Fitness App API"}
