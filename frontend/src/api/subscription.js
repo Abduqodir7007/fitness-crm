@@ -3,7 +3,7 @@ import client from "./client";
 export const subscriptionAPI = {
     create: async (user_id, plan_id, payment_method, trainer_id = null) => {
         try {
-            const response = await client.post("/admin/subscriptions/assign", {
+            const response = await client.post("/admin/subscription/assign", {
                 user_id,
                 plan_id,
                 payment_method,

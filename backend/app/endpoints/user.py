@@ -212,62 +212,62 @@ async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
     return response
 
 
-@router.patch("/update/password", status_code=status.HTTP_200_OK)
-async def update_user_password(
-    password: UpdateUserPassword,
-    db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(select(Users).where(Users.id == password.user_id))
-    user = result.scalars().first()
+# @router.patch("/update/password", status_code=status.HTTP_200_OK)
+# async def update_user_password(
+#     password: UpdateUserPassword,
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     result = await db.execute(select(Users).where(Users.id == password.user_id))
+#     user = result.scalars().first()
 
-    user.hashed_password = await hash_password(password.password)
+#     user.hashed_password = await hash_password(password.password)
 
-    await db.commit()
-    return {"detail": "Password updated successfully"}
-
-
-@router.patch("/update/info")
-async def update_user_information(
-    user_info: UpdateUserInformation,
-    db: AsyncSession = Depends(get_db),
-    user: Users = Depends(get_superuser),
-):
-    result = await db.execute(select(Users).where(Users.id == user_info.user_id))
-    user = result.scalars().first()
-
-    if user_info.first_name is not None:
-        user.first_name = user_info.first_name
-
-    if user_info.last_name is not None:
-        user.last_name = user_info.last_name
-
-    if user_info.phone_number is not None:
-        user.phone_number = user_info.phone_number
-
-    await db.commit()
-    return {"detail": "User information updated successfully"}
+#     await db.commit()
+#     return {"detail": "Password updated successfully"}
 
 
-@router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
-async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
+# @router.patch("/update/info")
+# async def update_user_information(
+#     user_info: UpdateUserInformation,
+#     db: AsyncSession = Depends(get_db),
+#     user: Users = Depends(get_superuser),
+# ):
+#     result = await db.execute(select(Users).where(Users.id == user_info.user_id))
+#     user = result.scalars().first()
 
-    is_active = await is_subscription_active(user_id, db)
-    if is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete user with active subscription",
-        )
+#     if user_info.first_name is not None:
+#         user.first_name = user_info.first_name
 
-    result = await db.execute(select(Users).where(Users.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-    await db.delete(user)
-    await db.commit()
-    return {"message": "User deleted successfully"}
+#     if user_info.last_name is not None:
+#         user.last_name = user_info.last_name
+
+#     if user_info.phone_number is not None:
+#         user.phone_number = user_info.phone_number
+
+#     await db.commit()
+#     return {"detail": "User information updated successfully"}
+
+
+# @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
+# async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
+
+#     is_active = await is_subscription_active(user_id, db)
+#     if is_active:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Cannot delete user with active subscription",
+#         )
+
+#     result = await db.execute(select(Users).where(Users.id == user_id))
+#     user = result.scalars().first()
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="User not found",
+#         )
+#     await db.delete(user)
+#     await db.commit()
+#     return {"message": "User deleted successfully"}
 
 
 @router.get("/trainers/{trainer_id}/clients/", status_code=status.HTTP_200_OK)

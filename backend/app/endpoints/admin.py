@@ -25,7 +25,7 @@ router = APIRouter(
 )
 
 
-@router.post("/subscription_plans", status_code=status.HTTP_201_CREATED)
+@router.post("/subscription-plans", status_code=status.HTTP_201_CREATED) # change in frontend
 async def create_subscription_plan(
     subscription: SubscriptionPlanCreate,
     db: AsyncSession = Depends(get_db),
@@ -42,7 +42,7 @@ async def create_subscription_plan(
     return new_plan
 
 
-@router.get("/subscription_plans", response_model=list[SubscriptionResponse])
+@router.get("/subscription-plans", response_model=list[SubscriptionResponse]) # change in frontend
 async def get_subscription_plans(
     db: AsyncSession = Depends(get_db),
 ):
@@ -54,26 +54,26 @@ async def get_subscription_plans(
     return plans
 
 # do not used
-@router.put("/subscription_plans/deactivate/{plan_id}", status_code=status.HTTP_200_OK)
-async def deactivate_subscription_plan(
-    plan_id: str, db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(
-        select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
-    )
-    plan = result.scalars().first()
-    if not plan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Subscription plan not found",
-        )
-    plan.is_active = False
-    db.add(plan)
-    await db.commit()
-    return {"message": "Subscription plan deactivated successfully"}
+# @router.put("/subscription_plans/deactivate/{plan_id}", status_code=status.HTTP_200_OK)
+# async def deactivate_subscription_plan(
+#     plan_id: str, db: AsyncSession = Depends(get_db)
+# ):
+#     result = await db.execute(
+#         select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
+#     )
+#     plan = result.scalars().first()
+#     if not plan:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="Subscription plan not found",
+#         )
+#     plan.is_active = False
+#     db.add(plan)
+#     await db.commit()
+#     return {"message": "Subscription plan deactivated successfully"}
 
 
-@router.put("/subscription_plan/update/{plan_id}", status_code=status.HTTP_200_OK)
+@router.put("/subscription-plans/update/{plan_id}", status_code=status.HTTP_200_OK) # change in frontend
 async def update_subscription_plan(
     plan_id: str,
     subscription: SubscriptionPlanCreate,
@@ -97,7 +97,7 @@ async def update_subscription_plan(
     return {"message": "Subscription plan updated successfully"}
 
 
-@router.delete("/subscription_plans/{plan_id}", status_code=status.HTTP_200_OK)
+@router.delete("/subscription-plans/{plan_id}", status_code=status.HTTP_200_OK) # change in frontend
 async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
@@ -113,7 +113,7 @@ async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_
     return {"message": "Subscription plan deleted successfully"}
 
 
-@router.post("/subscriptions/assign", status_code=status.HTTP_200_OK)
+@router.post("/subscription/assign", status_code=status.HTTP_200_OK) # change in frontend
 async def subscriptions_assign(
     subscription: SubscriptionCreate, db: AsyncSession = Depends(get_db)
 ):

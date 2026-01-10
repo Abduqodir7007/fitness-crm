@@ -130,7 +130,7 @@ export default function TrainersContent() {
         if (window.confirm("Haqiqatan ham bu trenerni o'chirmoqchisiz?")) {
             try {
                 const response = await client.delete(
-                    `/users/delete/${trainerId}`
+                    `/auth/delete/${trainerId}`
                 );
                 if (response.status === 200) {
                     // WebSocket will broadcast the update
@@ -217,11 +217,10 @@ export default function TrainersContent() {
                                     {trainer.first_name?.charAt(0) || "T"}
                                 </div>
                                 <span
-                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                        trainer.is_active
+                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${trainer.is_active
                                             ? "bg-green-100 text-green-800"
                                             : "bg-yellow-100 text-yellow-800"
-                                    }`}
+                                        }`}
                                 >
                                     {trainer.is_active ? "Faol" : "Pauzada"}
                                 </span>

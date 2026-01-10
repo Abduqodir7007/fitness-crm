@@ -3,7 +3,7 @@ import client from "./client";
 export const pricingAPI = {
     getAll: async () => {
         try {
-            const response = await client.get("/admin/subscription_plans");
+            const response = await client.get("/admin/subscription-plans");
             return response.data;
         } catch (error) {
             console.error("Error fetching pricing plans:", error);
@@ -13,7 +13,7 @@ export const pricingAPI = {
 
     create: async (name, price, duration_days) => {
         try {
-            const response = await client.post("/admin/subscription_plans", {
+            const response = await client.post("/admin/subscription-plans", {
                 name,
                 price,
                 duration_days,
@@ -28,7 +28,7 @@ export const pricingAPI = {
     deactivate: async (planId) => {
         try {
             const response = await client.put(
-                `/admin/subscription_plans/deactivate/${planId}`
+                `/admin/subscription-plans/deactivate/${planId}`
             );
             return response.data;
         } catch (error) {
@@ -40,7 +40,7 @@ export const pricingAPI = {
     delete: async (planId) => {
         try {
             const response = await client.delete(
-                `/admin/subscription_plans/${planId}`
+                `/admin/subscription-plans/${planId}`
             );
             return response.data;
         } catch (error) {
@@ -52,7 +52,7 @@ export const pricingAPI = {
     update: async (planId, name, price, duration_days) => {
         try {
             const response = await client.put(
-                `/admin/subscription_plan/update/${planId}`,
+                `/admin/subscription-plans/update/${planId}`,
                 {
                     name,
                     price,
@@ -69,7 +69,7 @@ export const pricingAPI = {
     partialUpdate: async (planId, data) => {
         try {
             const response = await client.patch(
-                `/admin/subscription_plan/update/${planId}`,
+                `/admin/subscription-plans/update/${planId}`,
                 data
             );
             return response.data;

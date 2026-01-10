@@ -41,7 +41,7 @@ export const usersAPI = {
 
     delete: async (userId) => {
         try {
-            const response = await client.delete(`/users/delete/${userId}`);
+            const response = await client.delete(`/auth/delete/${userId}`);
             return response.data;
         } catch (error) {
             throw error;
@@ -111,7 +111,7 @@ export const usersAPI = {
                 password,
                 confirm_password: password,
             };
-            const response = await client.patch("/users/update/password", data);
+            const response = await client.patch("/auth/update/password", data);
             return response.data;
         } catch (error) {
             throw error;
@@ -126,7 +126,7 @@ export const usersAPI = {
                 last_name: lastName,
                 phone_number: phoneNumber,
             };
-            const response = await client.patch("/users/update/info", data);
+            const response = await client.patch("/auth/update/info", data);
             return response.data;
         } catch (error) {
             throw error;

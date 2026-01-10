@@ -17,7 +17,7 @@ services:
         container_name: postgres
         image: postgres:15
         ports:
-            - "5432:5432"
+            - "5433:5432" # port 5432 is already in use so i changed it to 5433 for local development.
         volumes:
             - postgres_data:/var/lib/postgresql/data
         env_file:
