@@ -4,6 +4,7 @@ import { dashboardAPI } from "../api/dashboard";
 export default function PaymentsContent() {
     const [payments, setPayments] = useState([]);
     const [dailyProfit, setDailyProfit] = useState(0);
+    const [weeklyProfit, setWeeklyProfit] = useState(0);
     const [monthlyProfit, setMonthlyProfit] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,6 +22,7 @@ export default function PaymentsContent() {
             ]);
             setPayments(paymentData);
             setDailyProfit(profitData.daily_profit || 0);
+            setWeeklyProfit(profitData.weekly_profit || 0);
             setMonthlyProfit(profitData.monthly_profit || 0);
         } catch (err) {
             console.error("Error fetching data:", err);
@@ -44,9 +46,6 @@ export default function PaymentsContent() {
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat("uz-UZ").format(amount);
     };
-
-    // Mock weekly profit (will be replaced with real data later)
-    const weeklyProfit = "3,250,000";
 
     return (
         <div className="space-y-4 sm:space-y-6">
@@ -76,7 +75,7 @@ export default function PaymentsContent() {
                         Haftalik Daromad
                     </p>
                     <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
-                        {weeklyProfit} so'm
+                        {formatCurrency(weeklyProfit)} so'm
                     </p>
                 </div>
                 <div className="bg-white rounded-lg shadow p-4 sm:p-6">

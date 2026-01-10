@@ -253,13 +253,21 @@ async def get_payment_history(db: AsyncSession = Depends(get_db)):
 
 @router.get("/profit")
 async def get_profit(db: AsyncSession = Depends(get_db)):
+    
     daily_profit = await fetch_profit_from_db(date.today(), date.today(), db)
-    # weekly_profit = await fetch_profit_from_db() TO DO
+
+    weekly_profit = await fetch_profit_from_db(
+        date.today() - relativedelta(days=6), date.today(), db
+    )
 
     monthly_profit = await fetch_profit_from_db(
         date.today().replace(day=1), date.today(), db
     )
-    response = {"daily_profit": daily_profit, "monthly_profit": monthly_profit}
+    response = {
+        "daily_profit": daily_profit,
+        "weekly_profit": weekly_profit,
+        "monthly_profit": monthly_profit,
+    }
 
     return response
 

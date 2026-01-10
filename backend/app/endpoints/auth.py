@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.app.dependancy import get_superuser
-from backend.app.utils import is_subscription_active
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-
 from ..rate_limiter import rate_limiter
+from ..dependancy import get_superuser
+from ..utils import is_subscription_active
 from ..database import get_db
+from ..models import Users
 from ..schemas.users import (
     UpdateUserInformation,
     UpdateUserPassword,
@@ -15,7 +15,6 @@ from ..schemas.users import (
     UserLogin,
     Token,
 )
-from ..models import Users
 from ..security import (
     hash_password,
     verify_password,

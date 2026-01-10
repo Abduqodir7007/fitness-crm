@@ -59,6 +59,15 @@ const DashboardContent = memo(function DashboardContent() {
             isProfit: true,
             route: "reports",
         },
+        {
+            label: "Haftalik Foyda",
+            value: "0",
+            icon: "📈",
+            color: "#ec4899",
+            key: "weekly_profit",
+            isProfit: true,
+            route: "reports",
+        },
     ]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -111,6 +120,7 @@ const DashboardContent = memo(function DashboardContent() {
                 total_active_subscriptions: subscriptionTotal,
                 daily_plans_sold: dailyData.daily_clients || 0,
                 daily_profit: dailyData.daily_profit || 0,
+                weekly_profit: dailyData.weekly_profit || 0,
             };
 
             // Update stats with fetched data
@@ -681,8 +691,8 @@ const DashboardContent = memo(function DashboardContent() {
                                                             circumference;
                                                         const color =
                                                             colors[
-                                                                index %
-                                                                    colors.length
+                                                            index %
+                                                            colors.length
                                                             ];
                                                         const dashoffset =
                                                             -offset;
@@ -718,7 +728,7 @@ const DashboardContent = memo(function DashboardContent() {
                                                                     opacity:
                                                                         hoveredSegment ===
                                                                             null ||
-                                                                        isHovered
+                                                                            isHovered
                                                                             ? 1
                                                                             : 0.7,
                                                                 }}
@@ -809,19 +819,17 @@ const DashboardContent = memo(function DashboardContent() {
                                     onMouseLeave={() => setHoveredBar(null)}
                                 >
                                     <div
-                                        className={`w-12 bg-gradient-to-t from-red-400 to-red-300 rounded-t transition ${
-                                            isHovered
+                                        className={`w-12 bg-gradient-to-t from-red-400 to-red-300 rounded-t transition ${isHovered
                                                 ? "opacity-100 shadow-lg"
                                                 : "opacity-80 hover:opacity-100"
-                                        }`}
+                                            }`}
                                         style={{
-                                            height: `${
-                                                maxProfit > 0
+                                            height: `${maxProfit > 0
                                                     ? (item.profit /
-                                                          maxProfit) *
-                                                      200
+                                                        maxProfit) *
+                                                    200
                                                     : 0
-                                            }px`,
+                                                }px`,
                                         }}
                                     />
                                     {isHovered && (
