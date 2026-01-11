@@ -50,6 +50,12 @@ class UserCreate(BaseModel):
             raise ValueError("Password must be between 6 and 60 characters")
         return password
 
+    @field_validator("date_of_birth")
+    def validate_dob(cls, dob: date) -> date:
+        if dob and dob > date.today():
+            raise ValueError("Date of birth cannot be in the future")
+        return dob
+
     @model_validator(mode="before")
     def validate_names(cls, values: dict):
         first = values.get("first_name", "")
@@ -67,6 +73,27 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     phone_number: str
     password: str
+
+
+class GymAndAdminCreate(BaseModel):
+    name: str
+    address: str | None = None
+    user: UserCreate
+
+    class Config:
+        from_attributes = True
+
+
+class GymResponse(BaseModel):
+    id: UUID
+    name: str
+    address: str | None = None
+    is_active: bool
+    admin: UserResponse | None = None
+
+    @field_serializer("id")
+    def serialize_id(self, id: UUID) -> str:
+        return str(id)
 
 
 class SubscriptionPlansResponse(BaseModel):
@@ -113,14 +140,14 @@ class UserListResponse(BaseModel):
     role: UserRole | None = None
     is_active: bool | None = True
 
-    @field_validator("gender", mode="before")
+    @field_validator("gender", mode="before") # Do i need this code
     @classmethod
     def normalize_gender(cls, v):
         if isinstance(v, str):
             return v.lower()
         return v
 
-    @field_validator("role", mode="before")
+    @field_validator("role", mode="before") # DO i need this code
     @classmethod
     def normalize_role(cls, v):
         if isinstance(v, str):

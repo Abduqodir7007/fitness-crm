@@ -7,11 +7,11 @@ from ..rate_limiter import rate_limiter
 from ..dependancy import get_superuser
 from ..utils import is_subscription_active
 from ..database import get_db
-from ..models import Users
+from ..models import Users, Gyms
 from ..schemas.users import (
-    UpdateUserInformation,
     UpdateUserPassword,
     UserCreate,
+    GymAndAdminCreate,
     UserLogin,
     Token,
 )
@@ -26,7 +26,7 @@ from ..security import (
 router = APIRouter(prefix="/auth", tags=["Users"])
 
 
-@router.post(
+@router.post( # TO DO: implement gym_id assignment
     "/register",
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(rate_limiter)],
@@ -44,6 +44,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         )
 
     hashed_password = await hash_password(user_in.password)
+    
     new_user = Users(
         first_name=user_in.first_name,
         last_name=user_in.last_name,
@@ -59,14 +60,10 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
     return {"message": "User registered successfully"}
 
-@router.post("/create-gym-admin", status_code=status.HTTP_201_CREATED)
-async def create_gym_admin():
-    pass
-
 
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
-    print("Login attempt for phone number:", user_in.phone_number)
+
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number.strip())
     )
