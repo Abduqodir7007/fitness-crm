@@ -17,7 +17,7 @@ function App() {
             <Route
                 path="/dashboard"
                 element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
+                    <ProtectedRoute allowedRoles={["super-admin", "admin"]}>
                         <DashboardPage />
                     </ProtectedRoute>
                 }
@@ -25,7 +25,7 @@ function App() {
             <Route
                 path="/dashboard/:tab"
                 element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
+                    <ProtectedRoute allowedRoles={["super-admin", "admin"]}>
                         <DashboardPage />
                     </ProtectedRoute>
                 }
@@ -33,7 +33,7 @@ function App() {
             <Route
                 path="/user/:userId"
                 element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
+                    <ProtectedRoute allowedRoles={["super-admin", "admin"]}>
                         <ViewUserPage />
                     </ProtectedRoute>
                 }
@@ -41,7 +41,7 @@ function App() {
             <Route
                 path="/trainer/:trainerId"
                 element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
+                    <ProtectedRoute allowedRoles={["super-admin", "admin"]}>
                         <TrainerDetailPage />
                     </ProtectedRoute>
                 }

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from datetime import timedelta, date
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..utils import is_subscription_active
-from ..dependancy import get_superuser
+from ..dependancy import get_superuser, get_gym_id
 from ..database import get_db
 from ..models import (
     SubscriptionPlans,
@@ -25,9 +26,12 @@ router = APIRouter(
 )
 
 
-@router.post("/subscription-plans", status_code=status.HTTP_201_CREATED) # change in frontend
+@router.post(
+    "/subscription-plans", status_code=status.HTTP_201_CREATED
+)  # change in frontend
 async def create_subscription_plan(
     subscription: SubscriptionPlanCreate,
+    gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
 
@@ -35,6 +39,7 @@ async def create_subscription_plan(
         type=subscription.name,
         price=subscription.price,
         duration_days=subscription.duration_days,
+        gym_id=gym_id,
     )
     db.add(new_plan)
     await db.commit()
@@ -42,16 +47,22 @@ async def create_subscription_plan(
     return new_plan
 
 
-@router.get("/subscription-plans", response_model=list[SubscriptionResponse]) # change in frontend
+@router.get(
+    "/subscription-plans", response_model=list[SubscriptionResponse]
+)  # change in frontend
 async def get_subscription_plans(
+    gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(SubscriptionPlans).where(SubscriptionPlans.is_active == True)
+        select(SubscriptionPlans).where(
+            SubscriptionPlans.is_active == True, SubscriptionPlans.gym_id == gym_id
+        )
     )
     plans = result.scalars().all()
 
     return plans
+
 
 # do not used
 # @router.put("/subscription_plans/deactivate/{plan_id}", status_code=status.HTTP_200_OK)
@@ -73,7 +84,9 @@ async def get_subscription_plans(
 #     return {"message": "Subscription plan deactivated successfully"}
 
 
-@router.put("/subscription-plans/update/{plan_id}", status_code=status.HTTP_200_OK) # change in frontend
+@router.put(
+    "/subscription-plans/update/{plan_id}", status_code=status.HTTP_200_OK
+)  # change in frontend
 async def update_subscription_plan(
     plan_id: str,
     subscription: SubscriptionPlanCreate,
@@ -92,12 +105,15 @@ async def update_subscription_plan(
     plan.type = subscription.name
     plan.price = subscription.price
     plan.duration_days = subscription.duration_days
+
     db.add(plan)
     await db.commit()
     return {"message": "Subscription plan updated successfully"}
 
 
-@router.delete("/subscription-plans/{plan_id}", status_code=status.HTTP_200_OK) # change in frontend
+@router.delete(
+    "/subscription-plans/{plan_id}", status_code=status.HTTP_200_OK
+)  # change in frontend
 async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
@@ -113,9 +129,13 @@ async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_
     return {"message": "Subscription plan deleted successfully"}
 
 
-@router.post("/subscription/assign", status_code=status.HTTP_200_OK) # change in frontend
+@router.post(
+    "/subscription/assign", status_code=status.HTTP_200_OK
+)  # change in frontend
 async def subscriptions_assign(
-    subscription: SubscriptionCreate, db: AsyncSession = Depends(get_db)
+    subscription: SubscriptionCreate,
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
 ):
 
     is_active = await is_subscription_active(subscription.user_id, db)
@@ -130,6 +150,7 @@ async def subscriptions_assign(
         plan_id=subscription.plan_id,
         payment_method=subscription.payment_method,
         trainer_id=subscription.trainer_id,
+        gym_id=gym_id,
         start_date=date.today(),
         end_date=date.today() + timedelta(days=30),
     )
@@ -137,6 +158,7 @@ async def subscriptions_assign(
         select(SubscriptionPlans).where(SubscriptionPlans.id == subscription.plan_id)
     )
     plan = result.scalars().first()
+
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -146,6 +168,7 @@ async def subscriptions_assign(
     payment = Payment(
         user_id=subscription.user_id,
         amount=plan.price,
+        gym_id=gym_id,
         payment_method=subscription.payment_method,
     )
 
@@ -157,7 +180,9 @@ async def subscriptions_assign(
 
 @router.post("/subscriptions/assign/daily", status_code=status.HTTP_200_OK)
 async def daily_subscriptions_assign(
-    subscription: DailySubscriptionCreate, db: AsyncSession = Depends(get_db)
+    subscription: DailySubscriptionCreate,
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
 ):
 
     is_active = await is_subscription_active(subscription.user_id, db)
@@ -170,13 +195,16 @@ async def daily_subscriptions_assign(
     daily_sub = DailySubscriptions(
         user_id=subscription.user_id,
         amount=subscription.amount,
+        gym_id=gym_id,
     )
 
     payment = Payment(
         user_id=subscription.user_id,
         amount=subscription.amount,
         payment_method=subscription.payment_method,
+        gym_id=gym_id,
     )
+    
     db.add(daily_sub)
     db.add(payment)
     await db.commit()

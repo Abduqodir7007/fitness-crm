@@ -15,7 +15,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
 from ..utils import fetch_profit_from_db
-from ..dependancy import get_superuser
+from ..dependancy import get_superuser, get_gym_id
 from ..config import settings
 from ..database import get_db
 from ..schemas.admin import PaymentResponse
@@ -35,7 +35,8 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 # number of active users, number of trainers, today's attendance
 @router.get("/user-stats", status_code=status.HTTP_200_OK)
 async def get_dashboard_stats(
-    db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
+    db: AsyncSession = Depends(get_db),
+    gym_id: str = Depends(get_gym_id),
 ):
     response = []
 
@@ -56,7 +57,9 @@ async def get_dashboard_stats(
     total_trainers = result2.scalar()
 
     result3 = await db.execute(
-        select(func.count(Attendance.id)).where(Attendance.date == func.current_date())
+        select(func.count(Attendance.id)).where(
+            Attendance.date == func.current_date(), Attendance.gym_id == gym_id
+        )
     )
     today_attendance = result3.scalar()
 
@@ -72,7 +75,7 @@ async def get_dashboard_stats(
 
 @router.get("/subscription/stats", status_code=status.HTTP_200_OK)
 async def get_subscription_stats(
-    db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
+    db: AsyncSession = Depends(get_db), gym_id: str = Depends(get_gym_id)
 ):
 
     response = []
@@ -85,7 +88,7 @@ async def get_subscription_stats(
     result = await db.execute(
         select(SubscriptionPlans.type, func.count(Subscriptions.id))
         .outerjoin(Subscriptions, Subscriptions.plan_id == SubscriptionPlans.id)
-        .where(Subscriptions.is_active == True)
+        .where(Subscriptions.is_active == True, Subscriptions.gym_id == gym_id)
         .group_by(SubscriptionPlans.type)
     )
 
@@ -109,11 +112,14 @@ async def get_subscription_stats(
 
 # total profit for a day, daily clients, weekly clients
 @router.get("/subscription/payment")
-async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
+async def get_total_profit_for_day(
+    db: AsyncSession = Depends(get_db), gym_id: str = Depends(get_gym_id)
+):
 
     result2 = await db.execute(
         select(func.count(DailySubscriptions.id)).where(
-            DailySubscriptions.subscription_date == date.today()
+            DailySubscriptions.subscription_date == date.today(),
+            DailySubscriptions.gym_id == gym_id,
         )
     )
 
@@ -123,12 +129,12 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         "daily_clients": daily_visits or 0,
     }
 
-    weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
+    # weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
 
-    if weekly_clients:
-        print("Cache hit")
-        response["weekly_clients"] = json.loads(weekly_clients)
-        return response
+    # if weekly_clients:
+    #     print("Cache hit")
+    #     response["weekly_clients"] = json.loads(weekly_clients)
+    #     return response
 
     start_date = date.today() - timedelta(days=7)
     end_date = date.today() - timedelta(days=1)
@@ -153,17 +159,20 @@ async def get_total_profit_for_day(db: AsyncSession = Depends(get_db)):
         start_date += timedelta(days=1)
 
     response["weekly_clients"] = weekly_clients_list
-    await redis.set(
-        settings.WEEKLY_CLIENTS,
-        json.dumps(weekly_clients_list),
-        ex=60 * 60 * 3,  # cached for 3 hours
-    )
+
+    # await redis.set(
+    #     settings.WEEKLY_CLIENTS,
+    #     json.dumps(weekly_clients_list),
+    #     ex=60 * 60 * 3,  # cached for 3 hours
+    # )
     return response
 
 
 # Bar chart endpoint
 @router.get("/monthly/payment")
-async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
+async def get_monthly_payment_history(
+    db: AsyncSession = Depends(get_db), gym_id: str = Depends(get_gym_id)
+):
 
     # response = await redis.get(settings.MONTHLY_PROFIT)
 
@@ -177,7 +186,9 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(
         select(Payment)
-        .where(Payment.payment_date.between(start_date, end_date))
+        .where(
+            Payment.payment_date.between(start_date, end_date), Payment.gym_id == gym_id
+        )
         .order_by(Payment.payment_date)
     )
 
@@ -206,12 +217,15 @@ async def get_monthly_payment_history(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/notifications")
-async def get_ended_subscriptions(db: AsyncSession = Depends(get_db)):
+async def get_ended_subscriptions(
+    gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
     cutoff = [date.today() + timedelta(days=i) for i in range(1, 4)]
+
     result = await db.execute(
         select(Subscriptions)
         .options(selectinload(Subscriptions.user))
-        .where(Subscriptions.end_date.in_(cutoff))
+        .where(Subscriptions.end_date.in_(cutoff), Subscriptions.gym_id == gym_id)
     )
     subscriptions = result.scalars().all()
 
@@ -239,10 +253,13 @@ async def get_ended_subscriptions(db: AsyncSession = Depends(get_db)):
     status_code=status.HTTP_200_OK,
     response_model=list[PaymentResponse],
 )
-async def get_payment_history(db: AsyncSession = Depends(get_db)):
+async def get_payment_history(
+    gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
         select(Payment)
         .options(selectinload(Payment.user))
+        .where(Payment.gym_id == gym_id)
         .order_by(Payment.payment_date.desc())
         .limit(5)
     )
@@ -253,7 +270,7 @@ async def get_payment_history(db: AsyncSession = Depends(get_db)):
 
 @router.get("/profit")
 async def get_profit(db: AsyncSession = Depends(get_db)):
-    
+
     daily_profit = await fetch_profit_from_db(date.today(), date.today(), db)
 
     weekly_profit = await fetch_profit_from_db(
@@ -272,9 +289,11 @@ async def get_profit(db: AsyncSession = Depends(get_db)):
     return response
 
 
+# remove async if it blocks the thread
 @router.get("/download/stats", status_code=status.HTTP_200_OK)
 async def download_stats(
-    db: AsyncSession = Depends(get_db), superuser: Users = Depends(get_superuser)
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
 ):
     wb = Workbook()
     ws = wb.active
@@ -298,7 +317,9 @@ async def download_stats(
     ws.column_dimensions["E"].width = 30
 
     result = await db.execute(
-        select(Subscriptions).options(selectinload(Subscriptions.user))
+        select(Subscriptions)
+        .options(selectinload(Subscriptions.user))
+        .where(Subscriptions.gym_id == gym_id)
     )
     subscriptions = result.scalars().all()
 

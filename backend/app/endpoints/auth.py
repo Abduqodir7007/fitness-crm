@@ -7,11 +7,11 @@ from ..rate_limiter import rate_limiter
 from ..dependancy import get_superuser, get_gym_id
 from ..utils import is_subscription_active
 from ..database import get_db
-from ..models import Users, Gyms
+from ..models import Users
 from ..schemas.users import (
+    UpdateUserInformation,
     UpdateUserPassword,
     UserCreate,
-    GymAndAdminCreate,
     UserLogin,
     Token,
 )
@@ -144,7 +144,7 @@ async def update_user_password(
 ):
     result = await db.execute(select(Users).where(Users.id == password.user_id))
     user = result.scalars().first()
-
+    
     user.hashed_password = await hash_password(password.password)
 
     await db.commit()

@@ -84,18 +84,6 @@ class GymAndAdminCreate(BaseModel):
         from_attributes = True
 
 
-class GymResponse(BaseModel):
-    id: UUID
-    name: str
-    address: str | None = None
-    is_active: bool
-    admin: UserResponse | None = None
-
-    @field_serializer("id")
-    def serialize_id(self, id: UUID) -> str:
-        return str(id)
-
-
 class SubscriptionPlansResponse(BaseModel):
     type: str
     price: int
@@ -140,14 +128,14 @@ class UserListResponse(BaseModel):
     role: UserRole | None = None
     is_active: bool | None = True
 
-    @field_validator("gender", mode="before") # Do i need this code
+    @field_validator("gender", mode="before")  # Do i need this code
     @classmethod
     def normalize_gender(cls, v):
         if isinstance(v, str):
             return v.lower()
         return v
 
-    @field_validator("role", mode="before") # DO i need this code
+    @field_validator("role", mode="before")  # DO i need this code
     @classmethod
     def normalize_role(cls, v):
         if isinstance(v, str):

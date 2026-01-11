@@ -64,7 +64,9 @@ class SubscriptionPlans(Base):
 
     is_active = Column(Boolean, default=True)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True) # add to the database
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
+    )  # add to the database
     gym = relationship("Gyms")
 
     subscriptions = relationship(
@@ -85,6 +87,11 @@ class Subscriptions(Base):
     trainer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     trainer = relationship("Users", foreign_keys=[trainer_id])
 
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
+    )  # add to the database
+    gym = relationship("Gyms")
+
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -102,10 +109,15 @@ class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
     date = Column(Date, default=date.today(), nullable=False)
 
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
+    )  # add to the database
+    gym = relationship("Gyms")
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     user = relationship("Users", back_populates="attendances")
 
 
@@ -113,12 +125,18 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
     amount = Column(Integer, nullable=False)
     payment_date = Column(Date, default=date.today(), nullable=False)
     payment_method = Column(String(50), nullable=False)
+
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
+    )  # add to the database
+    gym = relationship("Gyms")
+
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
 
     user = relationship("Users", back_populates="payments")
 
@@ -129,6 +147,12 @@ class DailySubscriptions(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     subscription_date = Column(Date, default=date.today(), nullable=False)
     amount = Column(Integer, nullable=False)
+
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
+    )  # add to the database
+    gym = relationship("Gyms")
+
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )

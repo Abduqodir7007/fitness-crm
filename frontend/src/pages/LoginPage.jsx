@@ -22,6 +22,9 @@ export default function LoginPage() {
 
             // Redirect based on user role
             switch (response.role) {
+                case "super-admin":
+                    navigate("/dashboard/gyms");
+                    break;
                 case "admin":
                     navigate("/dashboard");
                     break;

@@ -8,8 +8,16 @@ const Sidebar = memo(function Sidebar({
     onClose,
 }) {
     const navigate = useNavigate();
+    const userRole = localStorage.getItem("user_role");
 
-    const menuItems = [
+    // Super admin menu - only gyms and admins management
+    const superAdminMenuItems = [
+        { id: "gyms", label: "Zallar", icon: "🏋️" },
+        { id: "admins", label: "Adminlar", icon: "👤" },
+    ];
+
+    // Regular admin menu - gym operations
+    const adminMenuItems = [
         { id: "dashboard", label: "Dashboard", icon: "🏠" },
         { id: "users", label: "Mijozlar", icon: "👥" },
         { id: "attendance", label: "Davomat", icon: "📝" },
@@ -17,6 +25,9 @@ const Sidebar = memo(function Sidebar({
         { id: "trainers", label: "Trenerlar", icon: "💪" },
         { id: "reports", label: "To'lovlar", icon: "📊" },
     ];
+
+    // Select menu items based on role
+    const menuItems = userRole === "super-admin" ? superAdminMenuItems : adminMenuItems;
 
     const handleLogout = () => {
         localStorage.removeItem("access_token");
@@ -40,9 +51,8 @@ const Sidebar = memo(function Sidebar({
 
             {/* Sidebar */}
             <div
-                className={`h-screen text-white w-64 flex flex-col fixed left-0 top-0 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-                    isOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`h-screen text-white w-64 flex flex-col fixed left-0 top-0 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
                 style={{ backgroundColor: "#0f1729" }}
             >
                 {/* Logo Section */}
@@ -84,11 +94,10 @@ const Sidebar = memo(function Sidebar({
                         <button
                             key={item.id}
                             onClick={() => handleMenuClick(item.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left font-medium text-white ${
-                                activeTab === item.id
-                                    ? "border-l-4"
-                                    : "hover:opacity-80"
-                            }`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left font-medium text-white ${activeTab === item.id
+                                ? "border-l-4"
+                                : "hover:opacity-80"
+                                }`}
                             style={{
                                 backgroundColor:
                                     activeTab === item.id

@@ -9,7 +9,9 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
         // Redirect to appropriate page based on role
-        if (userRole === "admin") {
+        if (userRole === "super-admin") {
+            return <Navigate to="/dashboard/gyms" replace />;
+        } else if (userRole === "admin") {
             return <Navigate to="/dashboard" replace />;
         } else if (userRole === "client") {
             return <Navigate to="/attendance" replace />;

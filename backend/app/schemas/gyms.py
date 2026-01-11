@@ -1,5 +1,5 @@
 from uuid import UUID
-from schemas.users import UserCreate, UserResponse
+from .users import UserCreate, UserResponse
 
 from pydantic import (
     BaseModel,
