@@ -64,6 +64,9 @@ class SubscriptionPlans(Base):
 
     is_active = Column(Boolean, default=True)
 
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True) # add to the database
+    gym = relationship("Gyms")
+
     subscriptions = relationship(
         "Subscriptions", back_populates="plan", cascade="all, delete-orphan"
     )

@@ -1,3 +1,4 @@
+from uuid import UUID
 from jose import JWTError, jwt
 
 from fastapi import HTTPException, status, Depends
@@ -47,3 +48,12 @@ async def get_superuser(user: Users = Depends(get_current_user)) -> bool:
         )
 
     return user.is_superuser
+
+
+async def get_gym_id(user: Users = Depends(get_current_user)) -> UUID:
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access this resource.",
+        )
+    return user.gym_id

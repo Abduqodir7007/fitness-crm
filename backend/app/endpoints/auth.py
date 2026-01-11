@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from ..rate_limiter import rate_limiter
-from ..dependancy import get_superuser
+from ..dependancy import get_superuser, get_gym_id
 from ..utils import is_subscription_active
 from ..database import get_db
 from ..models import Users, Gyms
@@ -26,12 +26,14 @@ from ..security import (
 router = APIRouter(prefix="/auth", tags=["Users"])
 
 
-@router.post( # TO DO: implement gym_id assignment
+@router.post(  # TO DO: implement gym_id assignment
     "/register",
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(rate_limiter)],
 )
-async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+async def register(
+    user_in: UserCreate, gym_id=Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
 
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number)
@@ -44,15 +46,16 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         )
 
     hashed_password = await hash_password(user_in.password)
-    
+
     new_user = Users(
         first_name=user_in.first_name,
         last_name=user_in.last_name,
         phone_number=user_in.phone_number,
+        role=user_in.role,
         date_of_birth=user_in.date_of_birth,
         gender=user_in.gender,
         hashed_password=hashed_password,
-        role=user_in.role,
+        gym_id=gym_id,
     )
 
     db.add(new_user)
