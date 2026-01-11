@@ -16,6 +16,8 @@ class Gyms(Base):
     address = Column(String(200), nullable=True)
     is_active = Column(Boolean, default=True)
 
+    users = relationship("Users", back_populates="gym", foreign_keys="Users.gym_id")
+
 
 class Users(Base):
     __tablename__ = "users"
@@ -29,7 +31,7 @@ class Users(Base):
     hashed_password = Column(String, nullable=False)
 
     gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
-    gym = relationship("Gyms")
+    gym = relationship("Gyms", back_populates="users")
 
     created_at = Column(Date, default=datetime.utcnow())
     date_of_birth = Column(Date, nullable=False)

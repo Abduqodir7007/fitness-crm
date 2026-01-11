@@ -1,12 +1,23 @@
 from uuid import UUID
-from .users import UserCreate, UserResponse
-
 from pydantic import (
     BaseModel,
     field_serializer,
-    field_validator,
-    model_validator,
 )
+from .users import UserCreate
+
+
+class AdminResponse(BaseModel):
+    id: UUID
+    first_name: str
+    last_name: str
+    phone_number: str
+
+    @field_serializer("id")
+    def serialize_id(self, id: UUID) -> str:
+        return str(id)
+
+    class Config:
+        from_attributes = True
 
 
 class GymAndAdminCreate(BaseModel):
@@ -23,8 +34,11 @@ class GymResponse(BaseModel):
     name: str
     address: str | None = None
     is_active: bool
-    admin: UserResponse | None = None
+    admin: AdminResponse | None = None
 
     @field_serializer("id")
     def serialize_id(self, id: UUID) -> str:
         return str(id)
+
+    class Config:
+        from_attributes = True

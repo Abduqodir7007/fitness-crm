@@ -8,6 +8,8 @@ const AddGymModal = memo(function AddGymModal({ isOpen, onClose, onSubmit }) {
         admin_last_name: "",
         admin_phone_number: "",
         admin_password: "",
+        admin_date_of_birth: "",
+        admin_gender: "male",
     });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -26,10 +28,18 @@ const AddGymModal = memo(function AddGymModal({ isOpen, onClose, onSubmit }) {
         setLoading(true);
 
         try {
-            // Prepend +998 to the phone number
+            // Format data to match backend GymAndAdminCreate schema
             const submitData = {
-                ...formData,
-                admin_phone_number: `+998${formData.admin_phone_number}`,
+                name: formData.name,
+                address: formData.address || null,
+                user: {
+                    first_name: formData.admin_first_name,
+                    last_name: formData.admin_last_name,
+                    phone_number: `+998${formData.admin_phone_number}`,
+                    password: formData.admin_password,
+                    date_of_birth: formData.admin_date_of_birth,
+                    gender: formData.admin_gender,
+                }
             };
             await onSubmit(submitData);
             setFormData({
@@ -39,6 +49,8 @@ const AddGymModal = memo(function AddGymModal({ isOpen, onClose, onSubmit }) {
                 admin_last_name: "",
                 admin_phone_number: "",
                 admin_password: "",
+                admin_date_of_birth: "",
+                admin_gender: "male",
             });
             onClose();
         } catch (err) {
@@ -79,7 +91,7 @@ const AddGymModal = memo(function AddGymModal({ isOpen, onClose, onSubmit }) {
                             <span className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs" style={{ backgroundColor: "#f0453f" }}>1</span>
                             Zal ma'lumotlari
                         </h3>
-                        
+
                         {/* Gym Name */}
                         <div className="mb-3">
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
@@ -180,7 +192,7 @@ const AddGymModal = memo(function AddGymModal({ isOpen, onClose, onSubmit }) {
                         </div>
 
                         {/* Admin Password */}
-                        <div>
+                        <div className="mb-3">
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
                                 Parol <span className="text-red-600">*</span>
                             </label>
@@ -194,6 +206,38 @@ const AddGymModal = memo(function AddGymModal({ isOpen, onClose, onSubmit }) {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                 required
                             />
+                        </div>
+
+                        {/* Date of Birth and Gender */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Tug'ilgan sana <span className="text-red-600">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    name="admin_date_of_birth"
+                                    value={formData.admin_date_of_birth}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Jinsi <span className="text-red-600">*</span>
+                                </label>
+                                <select
+                                    name="admin_gender"
+                                    value={formData.admin_gender}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    required
+                                >
+                                    <option value="male">Erkak</option>
+                                    <option value="female">Ayol</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 

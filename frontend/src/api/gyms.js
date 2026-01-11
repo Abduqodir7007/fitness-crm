@@ -3,7 +3,7 @@ import client from "./client";
 export const gymsAPI = {
     getAll: async () => {
         try {
-            const response = await client.get("/admin/gyms");
+            const response = await client.get("/superadmin/gyms");
             return response.data;
         } catch (error) {
             console.error("Get gyms error:", error);
@@ -13,7 +13,7 @@ export const gymsAPI = {
 
     create: async (gymData) => {
         try {
-            const response = await client.post("/admin/gyms", gymData);
+            const response = await client.post("/superadmin/create-gym", gymData);
             return response.data;
         } catch (error) {
             console.error("Create gym error:", error);
@@ -23,7 +23,7 @@ export const gymsAPI = {
 
     delete: async (gymId) => {
         try {
-            const response = await client.delete(`/admin/gyms/${gymId}`);
+            const response = await client.delete(`/superadmin/gyms/${gymId}`);
             return response.data;
         } catch (error) {
             console.error("Delete gym error:", error);

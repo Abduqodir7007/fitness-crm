@@ -15,6 +15,9 @@ from ..security import (
     verify_token,
 )
 from ..schemas.users import (
+    UserResponse,
+)
+from ..schemas.gyms import (
     GymAndAdminCreate,
     GymResponse,
 )
@@ -26,42 +29,76 @@ router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
 async def create_gym_and_admin(
     gym_admin: GymAndAdminCreate, db: AsyncSession = Depends(get_db)
 ):
-    new_gym = Gyms(name=gym_admin.name, address=gym_admin.address)
-    db.add(new_gym)
 
     admin = await db.execute(
-        select(Users).where(Users.phone_number == gym_admin.phone_number)
+        select(Users).where(Users.phone_number == gym_admin.user.phone_number)
     )
 
     if admin.scalars().first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Admin user with this phone number already exists",
+            detail="Bu telefon raqami bilan foydalanuvchi mavjud",
         )
 
-    hashed_password = hash_password(gym_admin.user.password)
+    new_gym = Gyms(name=gym_admin.name, address=gym_admin.address)
+    db.add(new_gym)
+    await db.flush()
+
+    hashed_password = await hash_password(gym_admin.user.password)
 
     new_admin = Users(
         first_name=gym_admin.user.first_name,
         last_name=gym_admin.user.last_name,
         phone_number=gym_admin.user.phone_number,
         hashed_password=hashed_password,
+        date_of_birth=gym_admin.user.date_of_birth,
+        gender=gym_admin.user.gender,
         gym_id=new_gym.id,
         role="admin",
     )
     db.add(new_admin)
     await db.commit()
 
-    return {"message": "Gym and admin user created successfully"}
+    return {"message": "Zal va admin muvaffaqiyatli yaratildi"}
 
 
 @router.get("/gyms", response_model=list[GymResponse])
 async def get_gyms(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(Gyms, Users).join(
-            Users, (Gyms.id == Users.gym_id) & (Users.role == "admin")
-        )
+        select(Gyms, Users)
+        .outerjoin(Users, (Gyms.id == Users.gym_id) & (Users.role == "admin"))
+        .where(Gyms.is_active == True)
     )
-    gyms = result.scalars().all()
+    rows = result.all()
 
-    return gyms
+    response = []
+    for gym, admin in rows:
+        gym.admin = admin if admin else None
+        response.append(gym)
+
+    return response
+
+
+@router.delete("/gyms/{gym_id}", status_code=status.HTTP_200_OK)
+async def delete_gym(gym_id: str, db: AsyncSession = Depends(get_db)):
+
+    result = await db.execute(select(Gyms).where(Gyms.id == gym_id))
+    gym = result.scalars().first()
+
+    if not gym:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Zal topilmadi"
+        )
+
+    admin_result = await db.execute(
+        select(Users).where((Users.gym_id == gym.id) & (Users.role == "admin"))
+    )
+    admin = admin_result.scalars().first()
+
+    if admin:
+        await db.delete(admin)
+
+    await db.delete(gym)
+    await db.commit()
+
+    return {"message": "Zal muvaffaqiyatli o'chirildi"}
