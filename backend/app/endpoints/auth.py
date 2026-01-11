@@ -59,9 +59,14 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
     return {"message": "User registered successfully"}
 
+@router.post("/create-gym-admin", status_code=status.HTTP_201_CREATED)
+async def create_gym_admin():
+    pass
+
 
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
+    print("Login attempt for phone number:", user_in.phone_number)
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number.strip())
     )

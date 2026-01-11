@@ -8,6 +8,15 @@ from datetime import datetime, date
 from .database import Base
 
 
+class Gyms(Base):
+    __tablename__ = "gyms"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(100), nullable=False)
+    address = Column(String(200), nullable=True)
+    is_active = Column(Boolean, default=True)
+
+
 class Users(Base):
     __tablename__ = "users"
 
@@ -18,6 +27,9 @@ class Users(Base):
     role = Column(String(20), nullable=True, default="client")
     gender = Column(String(10), nullable=True, default="male")
     hashed_password = Column(String, nullable=False)
+
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym = relationship("Gyms")
 
     created_at = Column(Date, default=datetime.utcnow())
     date_of_birth = Column(Date, nullable=False)

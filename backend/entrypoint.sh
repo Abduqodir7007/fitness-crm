@@ -8,10 +8,4 @@ while ! nc -z db 5432; do
 done
 echo "PostgreSQL started!"
 
-echo "Running database migrations..."
-alembic upgrade head
-
-echo "Starting FastAPI server..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-# Currently do not used
+exec "$@"

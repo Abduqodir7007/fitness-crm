@@ -16,6 +16,7 @@ class Gender(str, Enum):
 
 
 class UserRole(str, Enum):
+    SUPER_ADMIN = "super-admin"
     CLIENT = "client"
     TRAINER = "trainer"
     ADMIN = "admin"

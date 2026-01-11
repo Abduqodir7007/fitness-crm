@@ -68,3 +68,32 @@ class PaymentResponse(BaseModel):
 class AttendanceResponse(BaseModel):
     user: UserResponse
     date: date
+
+
+# Gym Schemas
+class GymCreate(BaseModel):
+    name: str
+    address: str | None = None
+    # Admin user details
+    admin_first_name: str
+    admin_last_name: str
+    admin_phone_number: str
+    admin_password: str
+
+    class Config:
+        from_attributes = True
+
+
+class GymResponse(BaseModel):
+    id: UUID
+    name: str
+    address: str | None = None
+    is_active: bool
+    admin: UserResponse | None = None
+
+    @field_serializer("id")
+    def serialize_id(self, id: UUID) -> str:
+        return str(id)
+
+    class Config:
+        from_attributes = True
