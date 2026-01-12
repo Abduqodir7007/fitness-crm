@@ -85,6 +85,7 @@ async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
             "access_token": token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
+            "gym_id": str(user.gym_id) if user.gym_id else None,
         }
 
     raise HTTPException(
@@ -144,7 +145,7 @@ async def update_user_password(
 ):
     result = await db.execute(select(Users).where(Users.id == password.user_id))
     user = result.scalars().first()
-    
+
     user.hashed_password = await hash_password(password.password)
 
     await db.commit()

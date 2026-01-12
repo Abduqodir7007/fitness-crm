@@ -133,7 +133,7 @@ class Payment(Base):
 
     gym_id = Column(
         UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    )  # add to the database
+    )  
     gym = relationship("Gyms")
 
     user_id = Column(
@@ -144,7 +144,7 @@ class Payment(Base):
 
 
 class DailySubscriptions(Base):
-    __tablename__ = "daily_subscriptions"
+    __tablename__ = "daily_subscriptions" 
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     subscription_date = Column(Date, default=date.today(), nullable=False)

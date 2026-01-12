@@ -46,13 +46,16 @@ async def get_dashboard_stats(
                 Users.is_active == True,
                 Users.role == "client",
                 Users.is_superuser == False,
+                Users.gym_id == gym_id,
             )
         )
     )
     total_active_users = result1.scalar()
 
     result2 = await db.execute(
-        select(func.count(Users.id)).where(Users.role == "trainer")
+        select(func.count(Users.id)).where(
+            and_(Users.role == "trainer", Users.gym_id == gym_id)
+        )
     )
     total_trainers = result2.scalar()
 
@@ -81,7 +84,9 @@ async def get_subscription_stats(
     response = []
 
     result1 = await db.execute(
-        select(func.count(Subscriptions.id)).where(Subscriptions.is_active == True)
+        select(func.count(Subscriptions.id)).where(
+            and_(Subscriptions.is_active == True, Subscriptions.gym_id == gym_id)
+        )
     )
     total_active_subscriptions = result1.scalar()
 
@@ -144,7 +149,12 @@ async def get_total_profit_for_day(
             func.date(DailySubscriptions.subscription_date),
             func.count(DailySubscriptions.id),
         )
-        .where(DailySubscriptions.subscription_date.between(start_date, end_date))
+        .where(
+            and_(
+                DailySubscriptions.subscription_date.between(start_date, end_date),
+                DailySubscriptions.gym_id == gym_id,
+            )
+        )
         .group_by(DailySubscriptions.subscription_date)
     )
 
@@ -269,16 +279,18 @@ async def get_payment_history(
 
 
 @router.get("/profit")
-async def get_profit(db: AsyncSession = Depends(get_db)):
+async def get_profit(
+    gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
 
-    daily_profit = await fetch_profit_from_db(date.today(), date.today(), db)
+    daily_profit = await fetch_profit_from_db(date.today(), date.today(), db, gym_id)
 
     weekly_profit = await fetch_profit_from_db(
-        date.today() - relativedelta(days=6), date.today(), db
+        date.today() - relativedelta(days=6), date.today(), db, gym_id
     )
 
     monthly_profit = await fetch_profit_from_db(
-        date.today().replace(day=1), date.today(), db
+        date.today().replace(day=1), date.today(), db, gym_id
     )
     response = {
         "daily_profit": daily_profit,

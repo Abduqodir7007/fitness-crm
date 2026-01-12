@@ -33,6 +33,7 @@ class Token(BaseModel):
     is_superuser: bool
     role: str
     token_type: str
+    gym_id: str | None = None
 
 
 class UserCreate(BaseModel):

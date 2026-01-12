@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.endpoints import admin, auth, user, dashboard
+from app.endpoints import admin, auth, user, dashboard, super_admin
 from contextlib import asynccontextmanager
 
 from .database import Base, engine
@@ -10,7 +10,9 @@ from .database import Base, engine
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        
     yield
+
 
 
 app = FastAPI(lifespan=lifespan)
@@ -34,7 +36,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(user.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
-
+app.include_router(super_admin.router, prefix="/api")
 
 @app.get("/")
 async def home():

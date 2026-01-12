@@ -9,7 +9,7 @@ from ..schemas.admin import AttendanceResponse
 from ..models import Users, Subscriptions, Attendance
 from ..websocket import manager
 from ..database import get_db
-from ..dependancy import get_current_user
+from ..dependancy import get_current_user, get_gym_id
 
 from sqlalchemy import and_
 from sqlalchemy.orm import selectinload
@@ -30,11 +30,14 @@ router = APIRouter(prefix="/users", tags=["User Management"])
 async def get_all_users(
     q: str = Query(None),
     active_sub: bool = Query(None),
+    gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
 
     query = select(Users).where(
-        and_(Users.is_superuser == False, Users.role == "client")
+        and_(
+            Users.is_superuser == False, Users.role == "client", Users.gym_id == gym_id
+        )
     )
 
     if active_sub:
@@ -50,7 +53,7 @@ async def get_all_users(
         )
 
     users = (await db.execute(query)).scalars().all()
-
+    print(users)
     return users
 
 
@@ -127,17 +130,29 @@ async def get_current_user_info(
 @router.get(
     "/trainers", status_code=status.HTTP_200_OK, response_model=list[UserListResponse]
 )
-async def get_trainers(db: AsyncSession = Depends(get_db)):
+async def get_trainers(
+    gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
-        select(Users).where(and_(Users.role == "trainer", Users.is_active == True))
+        select(Users).where(
+            and_(
+                Users.role == "trainer", Users.is_active == True, Users.gym_id == gym_id
+            )
+        )
     )
     trainers = result.scalars().all()
     return trainers
 
 
 @router.get("/trainer/{trainer_id}", status_code=status.HTTP_200_OK)
-async def get_trainer_by_id(trainer_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Users).where(Users.id == trainer_id))
+async def get_trainer_by_id(
+    trainer_id: str,
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Users).where(and_(Users.id == trainer_id, Users.gym_id == gym_id))
+    )
     trainer = result.scalars().first()
 
     if not trainer:
@@ -159,14 +174,16 @@ async def get_trainer_by_id(trainer_id: str, db: AsyncSession = Depends(get_db))
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
-async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
+async def get_user(
+    user_id: str, gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
         select(Users)
         .options(
             selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
             selectinload(Users.payments),
         )
-        .where(Users.id == user_id)
+        .where(and_(Users.id == user_id, Users.gym_id == gym_id))
     )
     user = result.scalars().first()
 
@@ -211,11 +228,17 @@ async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/trainers/{trainer_id}/clients/", status_code=status.HTTP_200_OK)
-async def get_trainer_clients(trainer_id: str, db: AsyncSession = Depends(get_db)):
+async def get_trainer_clients(
+    trainer_id: str,
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(Subscriptions)
         .options(selectinload(Subscriptions.user), selectinload(Subscriptions.plan))
-        .where(Subscriptions.trainer_id == trainer_id)
+        .where(
+            and_(Subscriptions.trainer_id == trainer_id, Subscriptions.gym_id == gym_id)
+        )
     )
     subscriptions = result.scalars().all()
 
@@ -263,11 +286,13 @@ async def create_attendance(
     status_code=status.HTTP_200_OK,
     response_model=list[AttendanceResponse],
 )
-async def get_attendance(db: AsyncSession = Depends(get_db)):
+async def get_attendance(
+    gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
         select(Attendance)
         .options(selectinload(Attendance.user))
-        .where(Attendance.date == date.today())
+        .where(and_(Attendance.date == date.today(), Attendance.gym_id == gym_id))
     )
     attendances = result.scalars().all()
 
@@ -286,7 +311,11 @@ async def websocket_trainers_endpoint(
             message = json.loads(data)
             if message.get("type") == "trainers":
                 query = select(Users).where(
-                    and_(Users.role == "trainer", Users.is_active == True)
+                    and_(
+                        Users.role == "trainer",
+                        Users.is_active == True,
+                        Users.gym_id == message.get("gym_id"),
+                    )
                 )
                 result = await db.execute(query)
                 trainers = result.scalars().all()
@@ -310,7 +339,11 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
             message = json.loads(data)
             if message.get("type") == "users":
                 query = select(Users).where(
-                    and_(Users.is_superuser == False, Users.role == "client")
+                    and_(
+                        Users.is_superuser == False,
+                        Users.role == "client",
+                        Users.gym_id == message.get("gym_id"),
+                    )
                 )
                 result = await db.execute(query)
                 users = result.scalars().all()

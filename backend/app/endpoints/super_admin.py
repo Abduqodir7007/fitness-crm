@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -102,3 +103,12 @@ async def delete_gym(gym_id: str, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     return {"message": "Zal muvaffaqiyatli o'chirildi"}
+
+@router.get("/admin-users")
+async def get_admin_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(func.count(Users.id))
+        .where(Users.role == "admin", Users.is_active == True)
+    )
+    number_of_admins = result.scalars().first()
+    return {"number_of_admins": number_of_admins}

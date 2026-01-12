@@ -90,10 +90,13 @@ async def get_subscription_plans(
 async def update_subscription_plan(
     plan_id: str,
     subscription: SubscriptionPlanCreate,
+    gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
+        select(SubscriptionPlans).where(
+            SubscriptionPlans.id == plan_id, SubscriptionPlans.gym_id == gym_id
+        )
     )
     plan = result.scalars().first()
     if not plan:
@@ -114,9 +117,13 @@ async def update_subscription_plan(
 @router.delete(
     "/subscription-plans/{plan_id}", status_code=status.HTTP_200_OK
 )  # change in frontend
-async def delete_subscription_plan(plan_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_subscription_plan(
+    plan_id: str, gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
-        select(SubscriptionPlans).where(SubscriptionPlans.id == plan_id)
+        select(SubscriptionPlans).where(
+            SubscriptionPlans.id == plan_id, SubscriptionPlans.gym_id == gym_id
+        )
     )
     plan = result.scalars().first()
     if not plan:
@@ -204,7 +211,7 @@ async def daily_subscriptions_assign(
         payment_method=subscription.payment_method,
         gym_id=gym_id,
     )
-    
+
     db.add(daily_sub)
     db.add(payment)
     await db.commit()

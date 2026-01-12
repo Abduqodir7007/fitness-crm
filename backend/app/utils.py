@@ -16,11 +16,14 @@ async def is_subscription_active(user_id: str, db: AsyncSession) -> bool:
     return subscription is not None
 
 
-async def fetch_profit_from_db(start_date, end_date, db: AsyncSession):
+async def fetch_profit_from_db(start_date, end_date, db: AsyncSession, gym_id: str):
 
     result = await db.execute(
         select(func.sum(Payment.amount)).where(
-            Payment.payment_date.between(start_date, end_date)
+            and_(
+                Payment.payment_date.between(start_date, end_date),
+                Payment.gym_id == gym_id,
+            )
         )
     )
     profit = result.scalars().first()
