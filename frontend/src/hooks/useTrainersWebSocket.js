@@ -7,6 +7,8 @@ export const useTrainersWebSocket = () => {
     const websocketRef = useRef(null);
     const reconnectTimeoutRef = useRef(null);
 
+    const getGymId = () => localStorage.getItem("gym_id");
+
     useEffect(() => {
         const connectWebSocket = () => {
             const protocol =
@@ -21,7 +23,7 @@ export const useTrainersWebSocket = () => {
                 const ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {
-                    ws.send(JSON.stringify({ type: "trainers" }));
+                    ws.send(JSON.stringify({ type: "trainers", gym_id: getGymId() }));
                 };
 
                 ws.onmessage = (event) => {
@@ -72,7 +74,7 @@ export const useTrainersWebSocket = () => {
             websocketRef.current &&
             websocketRef.current.readyState === WebSocket.OPEN
         ) {
-            websocketRef.current.send(JSON.stringify({ type: "trainers" }));
+            websocketRef.current.send(JSON.stringify({ type: "trainers", gym_id: getGymId() }));
         }
     };
 

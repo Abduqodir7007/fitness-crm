@@ -20,6 +20,10 @@ export const authAPI = {
                 // Store role from backend response
                 localStorage.setItem("user_role", response.data.role);
                 localStorage.setItem("token_type", response.data.token_type);
+                // Store gym_id for filtering data
+                if (response.data.gym_id) {
+                    localStorage.setItem("gym_id", response.data.gym_id);
+                }
                 if (response.data.refresh_token) {
                     localStorage.setItem(
                         "refresh_token",

@@ -21,6 +21,8 @@ export default function UsersContent() {
     const websocketRef = useRef(null);
     const navigate = useNavigate();
 
+    const getGymId = () => localStorage.getItem("gym_id");
+
     // Fetch users from database on component mount and setup WebSocket
     useEffect(() => {
         fetchUsers();
@@ -74,7 +76,7 @@ export default function UsersContent() {
 
             ws.onopen = () => {
                 // Request initial users list
-                ws.send(JSON.stringify({ type: "users" }));
+                ws.send(JSON.stringify({ type: "users", gym_id: getGymId() }));
             };
 
             ws.onmessage = (event) => {
@@ -124,7 +126,7 @@ export default function UsersContent() {
                 websocketRef.current &&
                 websocketRef.current.readyState === WebSocket.OPEN
             ) {
-                websocketRef.current.send(JSON.stringify({ type: "users" }));
+                websocketRef.current.send(JSON.stringify({ type: "users", gym_id: getGymId() }));
             } else {
                 // Fallback: fetch directly if WebSocket not ready
                 await fetchUsers();
@@ -290,10 +292,10 @@ export default function UsersContent() {
                                                     )}
                                                 {notification.status ===
                                                     "Tugagan" && (
-                                                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">
-                                                        Tugagan
-                                                    </span>
-                                                )}
+                                                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">
+                                                            Tugagan
+                                                        </span>
+                                                    )}
                                             </div>
                                         </div>
                                         <button
@@ -303,12 +305,12 @@ export default function UsersContent() {
                                                 color: "#333",
                                             }}
                                             onMouseEnter={(e) =>
-                                                (e.target.style.backgroundColor =
-                                                    "#e8eaed")
+                                            (e.target.style.backgroundColor =
+                                                "#e8eaed")
                                             }
                                             onMouseLeave={(e) =>
-                                                (e.target.style.backgroundColor =
-                                                    "#f6f7f9")
+                                            (e.target.style.backgroundColor =
+                                                "#f6f7f9")
                                             }
                                         >
                                             💬 SMS
@@ -407,11 +409,10 @@ export default function UsersContent() {
                                             </td>
                                             <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm">
                                                 <span
-                                                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
-                                                        user.is_active
+                                                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${user.is_active
                                                             ? "bg-green-100 text-green-800"
                                                             : "bg-red-100 text-red-800"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {user.is_active
                                                         ? "Faol"
