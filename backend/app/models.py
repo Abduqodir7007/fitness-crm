@@ -116,7 +116,7 @@ class Attendance(Base):
 
     gym_id = Column(
         UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    )  # add to the database
+    ) 
     gym = relationship("Gyms")
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)

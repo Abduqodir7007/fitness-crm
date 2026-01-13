@@ -53,7 +53,6 @@ async def get_all_users(
         )
 
     users = (await db.execute(query)).scalars().all()
-    print(users)
     return users
 
 
@@ -61,6 +60,7 @@ async def get_all_users(
 async def get_current_user_info(
     user: Users = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
+
     result = await db.execute(
         select(Users)
         .options(
@@ -233,6 +233,7 @@ async def get_trainer_clients(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
+    print(gym_id)
     result = await db.execute(
         select(Subscriptions)
         .options(selectinload(Subscriptions.user), selectinload(Subscriptions.plan))
@@ -259,11 +260,17 @@ async def get_trainer_clients(
 
 @router.post("/attendance")
 async def create_attendance(
-    current_user: Users = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: Users = Depends(get_current_user),
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
         select(Attendance).where(
-            and_(Attendance.user_id == current_user.id, Attendance.date == date.today())
+            and_(
+                Attendance.user_id == current_user.id,
+                Attendance.date == date.today(),
+                Attendance.gym_id == gym_id,
+            )
         )
     )
     attendance = result.scalars().first()
@@ -274,7 +281,7 @@ async def create_attendance(
             detail="You already in an attendance",
         )
 
-    new_attendance = Attendance(user_id=current_user.id)
+    new_attendance = Attendance(user_id=current_user.id, gym_id=gym_id)
     db.add(new_attendance)
     await db.commit()
 
@@ -295,7 +302,6 @@ async def get_attendance(
         .where(and_(Attendance.date == date.today(), Attendance.gym_id == gym_id))
     )
     attendances = result.scalars().all()
-
     return attendances
 
 

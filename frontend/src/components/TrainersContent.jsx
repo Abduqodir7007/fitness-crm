@@ -16,6 +16,8 @@ export default function TrainersContent() {
     const [error, setError] = useState(null);
     const websocketRef = useRef(null);
 
+    const getGymId = () => localStorage.getItem("gym_id");
+
     // Fetch trainers from HTTP endpoint first
     const fetchTrainers = async () => {
         setIsLoading(true);
@@ -45,7 +47,7 @@ export default function TrainersContent() {
             const ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                ws.send(JSON.stringify({ type: "trainers" }));
+                ws.send(JSON.stringify({ type: "trainers", gym_id: getGymId() }));
             };
 
             ws.onmessage = (event) => {
@@ -98,10 +100,12 @@ export default function TrainersContent() {
     // Handle add trainer
     const handleAddTrainer = async (formData) => {
         try {
+            // Prepend +998 to phone number
+            const fullPhoneNumber = `+998${formData.phone_number}`;
             await authAPI.signup(
                 formData.first_name,
                 formData.last_name,
-                formData.phone_number,
+                fullPhoneNumber,
                 formData.password,
                 formData.date_of_birth,
                 formData.gender,
@@ -113,7 +117,7 @@ export default function TrainersContent() {
                 websocketRef.current &&
                 websocketRef.current.readyState === WebSocket.OPEN
             ) {
-                websocketRef.current.send(JSON.stringify({ type: "trainers" }));
+                websocketRef.current.send(JSON.stringify({ type: "trainers", gym_id: getGymId() }));
             } else {
                 // Fallback: fetch directly if WebSocket not ready
                 await fetchTrainers();
@@ -136,7 +140,7 @@ export default function TrainersContent() {
                     // WebSocket will broadcast the update
                     if (websocketRef.current?.readyState === WebSocket.OPEN) {
                         websocketRef.current.send(
-                            JSON.stringify({ type: "trainers" })
+                            JSON.stringify({ type: "trainers", gym_id: getGymId() })
                         );
                     }
                 } else {
@@ -218,8 +222,8 @@ export default function TrainersContent() {
                                 </div>
                                 <span
                                     className={`px-3 py-1 rounded-full text-xs font-semibold ${trainer.is_active
-                                            ? "bg-green-100 text-green-800"
-                                            : "bg-yellow-100 text-yellow-800"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-yellow-100 text-yellow-800"
                                         }`}
                                 >
                                     {trainer.is_active ? "Faol" : "Pauzada"}

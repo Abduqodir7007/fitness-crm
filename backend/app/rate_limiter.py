@@ -31,4 +31,4 @@ class RateLimiter:
             )
 
 
-rate_limiter = RateLimiter(1, 60 * 5)
+rate_limiter = RateLimiter(5, 60 * 3)

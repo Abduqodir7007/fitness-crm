@@ -14,6 +14,7 @@ from ..schemas.users import (
     UserCreate,
     UserLogin,
     Token,
+    RefreshTokenRequest,
 )
 from ..security import (
     hash_password,
@@ -153,5 +154,11 @@ async def update_user_password(
 
 
 @router.post("/refresh", status_code=status.HTTP_200_OK)
-async def get_new_access_token(token: str):
-    return await verify_token(token)
+async def get_new_access_token(body: RefreshTokenRequest):
+    new_access_token = await verify_token(body.token)
+    if new_access_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+    return {"access_token": new_access_token}

@@ -36,6 +36,10 @@ class Token(BaseModel):
     gym_id: str | None = None
 
 
+class RefreshTokenRequest(BaseModel):
+    token: str
+
+
 class UserCreate(BaseModel):
     first_name: str
     last_name: str

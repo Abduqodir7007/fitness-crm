@@ -68,6 +68,8 @@ export const authAPI = {
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("user_role");
         localStorage.removeItem("token_type");
+        localStorage.removeItem("gym_id");
+        localStorage.removeItem("is_superuser");
     },
 
     getCurrentUser: async () => {

@@ -43,7 +43,7 @@ async def get_current_user(
 async def get_superuser(user: Users = Depends(get_current_user)) -> bool:
     if not user.is_superuser:
         raise HTTPException(
-            status_code=status.HTTP_403_BAD_REQUEST,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have a permission",
         )
 
@@ -51,9 +51,4 @@ async def get_superuser(user: Users = Depends(get_current_user)) -> bool:
 
 
 async def get_gym_id(user: Users = Depends(get_current_user)) -> UUID:
-    if user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to access this resource.",
-        )
     return user.gym_id
