@@ -43,7 +43,6 @@ async def get_dashboard_stats(
     result1 = await db.execute(
         select(func.count(Users.id)).where(
             and_(
-                Users.is_active == True,
                 Users.role == "client",
                 Users.is_superuser == False,
                 Users.gym_id == gym_id,
