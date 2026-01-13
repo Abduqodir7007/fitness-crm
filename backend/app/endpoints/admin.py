@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..utils import is_subscription_active
-from ..dependancy import get_superuser, get_gym_id
+from ..dependancy import is_admin, get_gym_id
 from ..database import get_db
 from ..models import (
     SubscriptionPlans,
@@ -22,7 +22,7 @@ from ..schemas.admin import (
 
 
 router = APIRouter(
-    prefix="/admin", tags=["Admin"], dependencies=[Depends(get_superuser)]
+    prefix="/admin", tags=["Admin"], dependencies=[Depends(is_admin)]
 )
 
 

@@ -40,14 +40,13 @@ async def get_current_user(
     return user
 
 
-async def get_superuser(user: Users = Depends(get_current_user)) -> bool:
-    if not user.is_superuser:
+async def is_admin(user: Users = Depends(get_current_user)):
+    if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have a permission",
+            detail="You do not have enough permissions",
         )
-
-    return user.is_superuser
+    return True
 
 
 async def get_gym_id(user: Users = Depends(get_current_user)) -> UUID:

@@ -80,6 +80,21 @@ async def get_gyms(db: AsyncSession = Depends(get_db)):
     return response
 
 
+@router.patch("/gym/{id}", status_code=status.HTTP_200_OK)
+async def update_gym(id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Gyms).where(Gyms.id == id))
+    gym = result.scalars().first()
+
+    if not gym:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Zal topilmadi"
+        )
+
+    gym.is_active = False
+    await db.commit()
+    return {"message": "Zal muvaffaqiyatli yangilandi"}
+
+
 @router.delete("/gyms/{gym_id}", status_code=status.HTTP_200_OK)
 async def delete_gym(gym_id: str, db: AsyncSession = Depends(get_db)):
 
@@ -104,11 +119,13 @@ async def delete_gym(gym_id: str, db: AsyncSession = Depends(get_db)):
 
     return {"message": "Zal muvaffaqiyatli o'chirildi"}
 
+
 @router.get("/admin-users")
 async def get_admin_users(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(func.count(Users.id))
-        .where(Users.role == "admin", Users.is_active == True)
+        select(func.count(Users.id)).where(
+            Users.role == "admin", Users.is_active == True
+        )
     )
     number_of_admins = result.scalars().first()
     return {"number_of_admins": number_of_admins}
