@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from ..dependancy import get_superuser
 from ..database import get_db
 from ..models import Users, Gyms
 from ..security import (

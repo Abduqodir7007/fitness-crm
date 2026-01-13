@@ -15,7 +15,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
 from ..utils import fetch_profit_from_db
-from ..dependancy import get_superuser, get_gym_id
+from ..dependancy import get_gym_id
 from ..config import settings
 from ..database import get_db
 from ..schemas.admin import PaymentResponse

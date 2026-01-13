@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from ..rate_limiter import rate_limiter
-from ..dependancy import get_superuser, get_gym_id
+from ..dependancy import get_gym_id
 from ..utils import is_subscription_active
 from ..database import get_db
 from ..models import Users
@@ -121,7 +121,6 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
 async def update_user_information(
     user_info: UpdateUserInformation,
     db: AsyncSession = Depends(get_db),
-    user: Users = Depends(get_superuser),
 ):
     result = await db.execute(select(Users).where(Users.id == user_info.user_id))
     user = result.scalars().first()
