@@ -21,6 +21,16 @@ export const gymsAPI = {
         }
     },
 
+    toggleStatus: async (gymId) => {
+        try {
+            const response = await client.patch(`/superadmin/gym/${gymId}`);
+            return response.data;
+        } catch (error) {
+            console.error("Toggle gym status error:", error);
+            throw error;
+        }
+    },
+
     delete: async (gymId) => {
         try {
             const response = await client.delete(`/superadmin/gyms/${gymId}`);

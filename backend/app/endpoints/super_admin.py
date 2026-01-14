@@ -9,10 +9,6 @@ from ..database import get_db
 from ..models import Users, Gyms
 from ..security import (
     hash_password,
-    verify_password,
-    create_access_token,
-    create_refresh_token,
-    verify_token,
 )
 from ..schemas.users import (
     UserResponse,
@@ -65,9 +61,9 @@ async def create_gym_and_admin(
 @router.get("/gyms", response_model=list[GymResponse])
 async def get_gyms(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(Gyms, Users)
-        .outerjoin(Users, (Gyms.id == Users.gym_id) & (Users.role == "admin"))
-        .where(Gyms.is_active == True)
+        select(Gyms, Users).outerjoin(
+            Users, (Gyms.id == Users.gym_id) & (Users.role == "admin")
+        )
     )
     rows = result.all()
 
@@ -88,8 +84,14 @@ async def update_gym(id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Zal topilmadi"
         )
+    
+    if gym.is_active:
+        gym.is_active = False
+        await db.commit()
+        return {"message": "Zal muvaffaqiyatli yangilandi"}
 
-    gym.is_active = False
+    gym.is_active = True
+
     await db.commit()
     return {"message": "Zal muvaffaqiyatli yangilandi"}
 

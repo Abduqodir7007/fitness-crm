@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import AddGymModal from "./AddGymModal";
+import ViewGymModal from "./ViewGymModal";
 import { gymsAPI } from "../api/gyms";
 
 export default function GymsContent() {
     const [gyms, setGyms] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [selectedGym, setSelectedGym] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -45,6 +48,23 @@ export default function GymsContent() {
             setError(errorMessage);
             console.error("Error deleting gym:", err);
         }
+    };
+
+    const handleToggleGymStatus = async (gymId) => {
+        try {
+            await gymsAPI.toggleStatus(gymId);
+            await fetchGyms();
+        } catch (err) {
+            const errorMessage = err.response?.data?.detail || "Zal holatini o'zgartirishda xato";
+            setError(errorMessage);
+            console.error("Error toggling gym status:", err);
+            throw err;
+        }
+    };
+
+    const handleGymClick = (gym) => {
+        setSelectedGym(gym);
+        setIsViewModalOpen(true);
     };
 
     // Filter gyms based on search query
@@ -194,7 +214,11 @@ export default function GymsContent() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {filteredGyms.map((gym) => (
-                                        <tr key={gym.id} className="hover:bg-gray-50">
+                                        <tr
+                                            key={gym.id}
+                                            className="hover:bg-gray-50 cursor-pointer"
+                                            onClick={() => handleGymClick(gym)}
+                                        >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: "rgba(240, 69, 63, 0.1)" }}>
@@ -219,7 +243,10 @@ export default function GymsContent() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right">
                                                 <button
-                                                    onClick={() => handleDeleteGym(gym.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteGym(gym.id);
+                                                    }}
                                                     className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
                                                     title="O'chirish"
                                                 >
@@ -237,7 +264,11 @@ export default function GymsContent() {
                         {/* Mobile Cards */}
                         <div className="md:hidden divide-y divide-gray-200">
                             {filteredGyms.map((gym) => (
-                                <div key={gym.id} className="p-4 hover:bg-gray-50">
+                                <div
+                                    key={gym.id}
+                                    className="p-4 hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => handleGymClick(gym)}
+                                >
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: "rgba(240, 69, 63, 0.1)" }}>
@@ -252,7 +283,7 @@ export default function GymsContent() {
                                             {gym.is_active ? "Faol" : "Nofaol"}
                                         </span>
                                     </div>
-                                    
+
                                     {gym.admin && (
                                         <div className="bg-gray-50 rounded-lg p-3 mb-3">
                                             <p className="text-xs text-gray-500 mb-1">Admin</p>
@@ -263,7 +294,10 @@ export default function GymsContent() {
 
                                     <div className="flex justify-end">
                                         <button
-                                            onClick={() => handleDeleteGym(gym.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteGym(gym.id);
+                                            }}
                                             className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition flex items-center gap-1 text-sm"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,6 +318,17 @@ export default function GymsContent() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleAddGym}
+            />
+
+            {/* View Gym Modal */}
+            <ViewGymModal
+                isOpen={isViewModalOpen}
+                onClose={() => {
+                    setIsViewModalOpen(false);
+                    setSelectedGym(null);
+                }}
+                gym={selectedGym}
+                onToggleStatus={handleToggleGymStatus}
             />
         </div>
     );

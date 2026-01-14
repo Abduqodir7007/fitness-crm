@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 
 from ..rate_limiter import rate_limiter
 from ..dependancy import get_gym_id
-from ..utils import is_subscription_active
+from ..utils import is_subscription_active, check_gym_active
 from ..database import get_db
 from ..models import Users
 from ..schemas.users import (
@@ -27,7 +27,7 @@ from ..security import (
 router = APIRouter(prefix="/auth", tags=["Users"])
 
 
-@router.post(  # TO DO: implement gym_id assignment
+@router.post(
     "/register",
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(rate_limiter)],
@@ -66,12 +66,29 @@ async def register(
 
 
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
-async def login_user(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login_user(
+    user_in: UserLogin,
+    gym_id: str = Depends(get_gym_id),
+    db: AsyncSession = Depends(get_db),
+):
 
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number.strip())
     )
     user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            detail="User does not exists", status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if user.role != "super-admin" and user.gym_id:
+        is_gym_active = await check_gym_active(user.gym_id, db)
+        if not is_gym_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Zal nofaol holatda. Iltimos, administrator bilan bog'laning.",
+            )
 
     if user and await verify_password(user_in.password, user.hashed_password):
         token = await create_access_token(
