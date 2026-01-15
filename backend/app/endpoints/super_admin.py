@@ -3,14 +3,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 
+from ..security import settings
 from ..database import get_db
 from ..models import Users, Gyms
 from ..security import (
     hash_password,
 )
 from ..schemas.users import (
+    CreateSuperUser,
     UserResponse,
 )
 from ..schemas.gyms import (
@@ -19,6 +20,30 @@ from ..schemas.gyms import (
 )
 
 router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
+
+
+@router.post("/create-super-admin", status_code=status.HTTP_201_CREATED)
+async def create_super_admin(
+    super_user: CreateSuperUser, db: AsyncSession = Depends(get_db)
+):
+    if not settings.ALLOW_BOOTSTRAP:
+        raise HTTPException(detail="Bootstrap not allowed", status_code=status.HTTP_403_FORBIDDEN)
+    
+
+    super_user = Users(
+        first_name=super_user.first_name,
+        last_name=super_user.last_name,
+        phone_number=super_user.phone_number,
+        role=super_user.role,
+        gender=super_user.gender,
+        date_of_birth=super_user.date_of_birth,
+        hashed_password=await hash_password(super_user.password),
+        is_superuser=True,
+    )
+    db.add(super_user)
+    await db.commit()
+
+    return {"message": "Super admin created successfully"}
 
 
 @router.post("/create-gym", status_code=status.HTTP_201_CREATED)
@@ -84,7 +109,7 @@ async def update_gym(id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Zal topilmadi"
         )
-    
+
     if gym.is_active:
         gym.is_active = False
         await db.commit()

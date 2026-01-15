@@ -40,6 +40,17 @@ class RefreshTokenRequest(BaseModel):
     token: str
 
 
+class CreateSuperUser(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    password: str
+    is_superuser: bool
+    date_of_birth: date | None = None
+    gender: Gender | None = Gender.MALE
+    role: UserRole | None = UserRole.CLIENT
+
+
 class UserCreate(BaseModel):
     first_name: str
     last_name: str
