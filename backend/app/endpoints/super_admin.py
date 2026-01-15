@@ -76,6 +76,7 @@ async def create_gym_and_admin(
         last_name=gym_admin.user.last_name,
         phone_number=gym_admin.user.phone_number,
         hashed_password=hashed_password,
+        
         date_of_birth=gym_admin.user.date_of_birth,
         gender=gym_admin.user.gender,
         gym_id=new_gym.id,

@@ -20,21 +20,15 @@ export default function LoginPage() {
             const fullPhoneNumber = `+998${phone_number}`;
             const response = await authAPI.login(fullPhoneNumber, password);
 
-            // Redirect based on user role
-            switch (response.role) {
-                case "super-admin":
-                    navigate("/dashboard/gyms");
-                    break;
-                case "admin":
-                    navigate("/dashboard");
-                    break;
-                case "trainer":
-                    navigate("/trainer-dashboard");
-                    break;
-                case "client":
-                default:
-                    navigate("/attendance");
-                    break;
+            // Redirect based on user role and is_superuser
+            if (response.role === "super-admin" && response.is_superuser) {
+                navigate("/dashboard/gyms");
+            } else if (response.role === "admin") {
+                navigate("/dashboard");
+            } else if (response.role === "trainer") {
+                navigate("/trainer-dashboard");
+            } else {
+                navigate("/attendance");
             }
         } catch (err) {
             setError(
