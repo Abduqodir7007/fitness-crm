@@ -43,7 +43,6 @@ async def create_super_admin(
         is_superuser=True,
     )
 
-    settings.ALLOW_BOOTSTRAP = False
     db.add(super_user)
     await db.commit()
 
