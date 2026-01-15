@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from ..utils import is_superuser_exists
 from ..security import settings
 from ..database import get_db
 from ..models import Users, Gyms
@@ -12,7 +13,6 @@ from ..security import (
 )
 from ..schemas.users import (
     CreateSuperUser,
-    UserResponse,
 )
 from ..schemas.gyms import (
     GymAndAdminCreate,
@@ -26,9 +26,11 @@ router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
 async def create_super_admin(
     super_user: CreateSuperUser, db: AsyncSession = Depends(get_db)
 ):
-    if not settings.ALLOW_BOOTSTRAP:
-        raise HTTPException(detail="Bootstrap not allowed", status_code=status.HTTP_403_FORBIDDEN)
-    
+
+    if await is_superuser_exists(db):
+        raise HTTPException(
+            detail="Superuser already exists", status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     super_user = Users(
         first_name=super_user.first_name,
@@ -40,6 +42,8 @@ async def create_super_admin(
         hashed_password=await hash_password(super_user.password),
         is_superuser=True,
     )
+
+    settings.ALLOW_BOOTSTRAP = False
     db.add(super_user)
     await db.commit()
 

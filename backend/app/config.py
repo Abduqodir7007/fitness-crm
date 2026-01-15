@@ -24,7 +24,6 @@ class Settings(BaseSettings):
     MONTHLY_PROFIT: str
     WEEKLY_CLIENTS: str
 
-    ALLOW_BOOTSTRAP: bool = True
 
     class Config:
         env_file = "../.env"

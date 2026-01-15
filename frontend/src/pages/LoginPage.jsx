@@ -209,16 +209,6 @@ export default function LoginPage() {
                         {loading ? "Kirish..." : "Kirish"}
                     </button>
                 </form>
-
-                {/* Footer Link */}
-                <div className="mt-6 text-center">
-                    <button
-                        type="button"
-                        className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-                    >
-                        Parolni unutdingizmi?
-                    </button>
-                </div>
             </div>
         </div>
     );

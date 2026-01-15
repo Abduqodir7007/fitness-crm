@@ -1,7 +1,9 @@
 from .models import Subscriptions, Payment, Gyms
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from .dependancy import get_current_user
+from .models import Users
 
 
 async def is_subscription_active(user_id: str, db: AsyncSession) -> bool:
@@ -41,5 +43,11 @@ async def check_gym_active(gym_id: str, db: AsyncSession) -> bool:
         raise HTTPException(
             detail="Gyms does not exits", status_code=status.HTTP_400_BAD_REQUEST
         )
-    
+
     return gym.is_active
+
+
+async def is_superuser_exists(db: AsyncSession) -> bool:
+    result = await db.execute(select(Users).where(Users.is_superuser == True))
+    superuser = result.scalars().first()
+    return True if superuser else False

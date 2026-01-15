@@ -66,6 +66,7 @@ async def get_current_user_info(
         .options(
             selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
             selectinload(Users.payments),
+            selectinload(Users.attendances),
         )
         .where(Users.id == user.id)
     )
@@ -122,8 +123,13 @@ async def get_current_user_info(
             if user_data.subscriptions
             else []
         ),
+        "attendances": [
+            {
+                "date": attendance.date.isoformat() if attendance.date else None,
+            }
+            for attendance in user.attendances[:3]
+        ],
     }
-
     return response
 
 
@@ -182,6 +188,7 @@ async def get_user(
         .options(
             selectinload(Users.subscriptions).selectinload(Subscriptions.plan),
             selectinload(Users.payments),
+            selectinload(Users.attendances),
         )
         .where(and_(Users.id == user_id, Users.gym_id == gym_id))
     )
@@ -222,8 +229,13 @@ async def get_user(
             }
             for sub in user.subscriptions
         ],
+        "attendances": [
+            {
+                "date": attendance.date.isoformat(),
+            }
+            for attendance in user.attendances[:3]
+        ],
     }
-
     return response
 
 
@@ -274,7 +286,7 @@ async def create_attendance(
         )
     )
     attendance = result.scalars().first()
- 
+
     if attendance:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -274,11 +274,10 @@ export default function ViewUserPage() {
                                         : "Ayol"}
                                 </span>
                                 <span
-                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium text-white ${
-                                        userDetails.is_active
+                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium text-white ${userDetails.is_active
                                             ? "bg-green-500"
                                             : "bg-red-500"
-                                    }`}
+                                        }`}
                                 >
                                     {userDetails.is_active ? "Faol" : "Nofa'ol"}
                                 </span>
@@ -316,8 +315,8 @@ export default function ViewUserPage() {
                         >
                             {getCurrentSubscription()
                                 ? calculateDaysRemaining(
-                                      getCurrentSubscription().days_left
-                                  )
+                                    getCurrentSubscription().days_left
+                                )
                                 : "-"}
                         </p>
                     </div>
@@ -343,7 +342,7 @@ export default function ViewUserPage() {
                     </h3>
 
                     {userDetails?.subscriptions &&
-                    userDetails.subscriptions.length > 0 ? (
+                        userDetails.subscriptions.length > 0 ? (
                         <>
                             {/* Desktop Table */}
                             <div className="hidden sm:block overflow-x-auto">
@@ -447,7 +446,7 @@ export default function ViewUserPage() {
                     </h3>
 
                     {userDetails?.payments &&
-                    userDetails.payments.length > 0 ? (
+                        userDetails.payments.length > 0 ? (
                         <>
                             {/* Desktop Table */}
                             <div className="hidden sm:block overflow-x-auto">
@@ -485,15 +484,14 @@ export default function ViewUserPage() {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                         <span
-                                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                                payment.payment_method ===
-                                                                "cash"
+                                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.payment_method ===
+                                                                    "cash"
                                                                     ? "bg-green-100 text-green-800"
                                                                     : "bg-blue-100 text-blue-800"
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {payment.payment_method ===
-                                                            "cash"
+                                                                "cash"
                                                                 ? "Naqd"
                                                                 : "Karta"}
                                                         </span>
@@ -519,15 +517,14 @@ export default function ViewUserPage() {
                                                 )}
                                             </span>
                                             <span
-                                                className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                    payment.payment_method ===
-                                                    "cash"
+                                                className={`px-2 py-1 rounded-full text-xs font-semibold ${payment.payment_method ===
+                                                        "cash"
                                                         ? "bg-green-100 text-green-800"
                                                         : "bg-blue-100 text-blue-800"
-                                                }`}
+                                                    }`}
                                             >
                                                 {payment.payment_method ===
-                                                "cash"
+                                                    "cash"
                                                     ? "Naqd"
                                                     : "Karta"}
                                             </span>
@@ -546,6 +543,49 @@ export default function ViewUserPage() {
                         <p className="text-gray-600 text-center py-6 sm:py-8 text-sm sm:text-base">
                             To'lovlar tarixi yo'q
                         </p>
+                    )}
+                </div>
+
+                {/* Attendance History Section */}
+                <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-8">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                        <svg
+                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                            />
+                        </svg>
+                        Davomat tarixi (oxirgi 3 ta)
+                    </h3>
+
+                    {userDetails?.attendances && userDetails.attendances.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="border-b border-gray-200">
+                                    <tr>
+                                        <th className="text-left py-3 text-gray-600 font-semibold">#</th>
+                                        <th className="text-left py-3 text-gray-600 font-semibold">Sana</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {userDetails.attendances.map((attendance, index) => (
+                                        <tr key={index}>
+                                            <td className="py-3 text-gray-600">{index + 1}</td>
+                                            <td className="py-3 text-gray-900 font-medium">{formatDate(attendance.date)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-center py-4">Davomat ma'lumotlari mavjud emas</p>
                     )}
                 </div>
 

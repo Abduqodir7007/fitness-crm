@@ -68,7 +68,6 @@ async def register(
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 async def login_user(
     user_in: UserLogin,
-    gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
 

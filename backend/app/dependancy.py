@@ -51,3 +51,5 @@ async def is_admin(user: Users = Depends(get_current_user)):
 
 async def get_gym_id(user: Users = Depends(get_current_user)) -> UUID:
     return user.gym_id
+
+

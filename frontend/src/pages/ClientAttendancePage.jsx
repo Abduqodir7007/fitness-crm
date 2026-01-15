@@ -173,8 +173,8 @@ export default function ClientAttendancePage() {
                                 {clientInfo?.gender === "male"
                                     ? "Erkak"
                                     : clientInfo?.gender === "female"
-                                    ? "Ayol"
-                                    : "—"}
+                                        ? "Ayol"
+                                        : "—"}
                             </p>
                         </div>
 
@@ -186,8 +186,8 @@ export default function ClientAttendancePage() {
                             <p className="text-lg text-gray-900">
                                 {clientInfo?.date_of_birth
                                     ? new Date(
-                                          clientInfo.date_of_birth
-                                      ).toLocaleDateString("uz-UZ")
+                                        clientInfo.date_of_birth
+                                    ).toLocaleDateString("uz-UZ")
                                     : "—"}
                             </p>
                         </div>
@@ -199,11 +199,10 @@ export default function ClientAttendancePage() {
                             </label>
                             <div className="flex items-center gap-2">
                                 <div
-                                    className={`w-3 h-3 rounded-full ${
-                                        clientInfo?.is_active
+                                    className={`w-3 h-3 rounded-full ${clientInfo?.is_active
                                             ? "bg-green-500"
                                             : "bg-gray-400"
-                                    }`}
+                                        }`}
                                 />
                                 <p className="text-lg text-gray-900">
                                     {clientInfo?.is_active
@@ -267,6 +266,38 @@ export default function ClientAttendancePage() {
                                 ))}
                             </div>
                         )}
+
+                    {/* Attendance History */}
+                    {clientInfo?.attendances &&
+                        clientInfo.attendances.length > 0 && (
+                            <div className="mt-8 pt-8 border-t border-gray-200">
+                                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                                    Davomat tarixi (oxirgi 3 ta)
+                                </h3>
+                                <div className="space-y-2">
+                                    {clientInfo.attendances.map((attendance, index) => (
+                                        <div
+                                            key={index}
+                                            className="p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-3"
+                                        >
+                                            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                                                ✓
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900">
+                                                    {new Date(attendance.date).toLocaleDateString("uz-UZ", {
+                                                        weekday: 'long',
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                 </div>
 
                 {/* Attendance Button */}
@@ -278,8 +309,8 @@ export default function ClientAttendancePage() {
                     {attendanceLoading
                         ? "Davom hisob qilinmoqda..."
                         : attendanceMarked
-                        ? "✓ Davom hisob qilindi"
-                        : "Bugun Keldi Deb Belgilash"}
+                            ? "✓ Davom hisob qilindi"
+                            : "Bugun Keldi Deb Belgilash"}
                 </button>
 
                 {/* Info Message */}
