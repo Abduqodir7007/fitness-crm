@@ -14,7 +14,7 @@ from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
-from ..utils import fetch_profit_from_db
+from ..utils import fetch_profit_from_db, cache_time_for_line
 from ..dependancy import get_gym_id
 from ..config import settings
 from ..database import get_db
@@ -133,12 +133,12 @@ async def get_total_profit_for_day(
         "daily_clients": daily_visits or 0,
     }
 
-    # weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
-
-    # if weekly_clients:
-    #     print("Cache hit")
-    #     response["weekly_clients"] = json.loads(weekly_clients)
-    #     return response
+    weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
+    
+    if weekly_clients:
+        print("Cache hit")
+        response["weekly_clients"] = json.loads(weekly_clients)
+        return response
 
     start_date = date.today() - timedelta(days=7)
     end_date = date.today() - timedelta(days=1)
@@ -169,11 +169,13 @@ async def get_total_profit_for_day(
 
     response["weekly_clients"] = weekly_clients_list
 
-    # await redis.set(
-    #     settings.WEEKLY_CLIENTS,
-    #     json.dumps(weekly_clients_list),
-    #     ex=60 * 60 * 3,  # cached for 3 hours
-    # )
+    ttl = await cache_time_for_line(db)
+
+    await redis.set(
+        settings.WEEKLY_CLIENTS,
+        json.dumps(weekly_clients_list),
+        ex=ttl,  # cached until midnight 
+    )
     return response
 
 
@@ -281,16 +283,18 @@ async def get_payment_history(
 async def get_profit(
     gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
+    today = date.today()
 
-    daily_profit = await fetch_profit_from_db(date.today(), date.today(), db, gym_id)
+    daily_profit = await fetch_profit_from_db(today, today, db, gym_id)
 
     weekly_profit = await fetch_profit_from_db(
-        date.today() - relativedelta(days=6), date.today(), db, gym_id
+        today - relativedelta(days=6), today, db, gym_id
     )
 
     monthly_profit = await fetch_profit_from_db(
-        date.today().replace(day=1), date.today(), db, gym_id
+        today.replace(day=1), today, db, gym_id
     )
+
     response = {
         "daily_profit": daily_profit,
         "weekly_profit": weekly_profit,
@@ -298,7 +302,6 @@ async def get_profit(
     }
 
     return response
-
 
 # remove async if it blocks the thread
 @router.get("/download/stats", status_code=status.HTTP_200_OK)

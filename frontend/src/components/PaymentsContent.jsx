@@ -65,7 +65,6 @@ export default function PaymentsContent() {
                     </p>
                     <p
                         className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2"
-                        style={{ color: "#f0453f" }}
                     >
                         {formatCurrency(dailyProfit)} so'm
                     </p>

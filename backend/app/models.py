@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer
+from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer, Time
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime, date
@@ -66,9 +66,7 @@ class SubscriptionPlans(Base):
 
     is_active = Column(Boolean, default=True)
 
-    gym_id = Column(
-        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    ) 
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
     gym = relationship("Gyms")
 
     subscriptions = relationship(
@@ -89,9 +87,7 @@ class Subscriptions(Base):
     trainer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     trainer = relationship("Users", foreign_keys=[trainer_id])
 
-    gym_id = Column(
-        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    ) 
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
     gym = relationship("Gyms")
 
     user_id = Column(
@@ -114,9 +110,7 @@ class Attendance(Base):
 
     date = Column(Date, default=date.today(), nullable=False)
 
-    gym_id = Column(
-        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    ) 
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
     gym = relationship("Gyms")
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -131,9 +125,7 @@ class Payment(Base):
     payment_date = Column(Date, default=date.today(), nullable=False)
     payment_method = Column(String(50), nullable=False)
 
-    gym_id = Column(
-        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    )  
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
     gym = relationship("Gyms")
 
     user_id = Column(
@@ -144,15 +136,13 @@ class Payment(Base):
 
 
 class DailySubscriptions(Base):
-    __tablename__ = "daily_subscriptions" 
+    __tablename__ = "daily_subscriptions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     subscription_date = Column(Date, default=date.today(), nullable=False)
     amount = Column(Integer, nullable=False)
 
-    gym_id = Column(
-        UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True
-    )
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
     gym = relationship("Gyms")
 
     user_id = Column(

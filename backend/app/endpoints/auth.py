@@ -5,9 +5,9 @@ from sqlalchemy.future import select
 
 from ..rate_limiter import rate_limiter
 from ..dependancy import get_gym_id
-from ..utils import is_subscription_active, check_gym_active
+from ..utils import is_subscription_active, check_gym_active  
 from ..database import get_db
-from ..models import Users
+from ..models import Users  
 from ..schemas.users import (
     UpdateUserInformation,
     UpdateUserPassword,
@@ -46,18 +46,15 @@ async def register(
             detail="User with this phone number already exists",
         )
 
+
+    hashed_password = await hash_password(user_in.password)
+    user_data = user_in.model_dump(exclude={"password"})
+
     hashed_password = await hash_password(user_in.password)
 
-    new_user = Users(
-        first_name=user_in.first_name,
-        last_name=user_in.last_name,
-        phone_number=user_in.phone_number,
-        role=user_in.role,
-        date_of_birth=user_in.date_of_birth,
-        gender=user_in.gender,
-        hashed_password=hashed_password,
-        gym_id=gym_id,
-    )
+    user_data.update({"hashed_password": hashed_password, "gym_id": gym_id})
+
+    new_user = Users(**user_data)
 
     db.add(new_user)
     await db.commit()
@@ -123,11 +120,13 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(select(Users).where(Users.id == user_id))
     user = result.scalars().first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
+
     await db.delete(user)
     await db.commit()
     return {"message": "User deleted successfully"}

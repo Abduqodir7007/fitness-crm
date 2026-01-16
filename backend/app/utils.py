@@ -1,9 +1,10 @@
-from .models import Subscriptions, Payment, Gyms
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
-from fastapi import HTTPException, status, Depends
-from .dependancy import get_current_user
-from .models import Users
+from fastapi import HTTPException, status
+from datetime import date, datetime, timedelta
+
+from .models import Subscriptions, Payment, Gyms, Users
+
 
 
 async def is_subscription_active(user_id: str, db: AsyncSession) -> bool:
@@ -51,3 +52,18 @@ async def is_superuser_exists(db: AsyncSession) -> bool:
     result = await db.execute(select(Users).where(Users.is_superuser == True))
     superuser = result.scalars().first()
     return True if superuser else False
+
+async def cache_time_for_line(db: AsyncSession) -> int:
+
+    now = datetime.now()
+
+    midnight = (now + timedelta(days=1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+    remaining_seconds = int((midnight - now).total_seconds())
+    return remaining_seconds
+
+
+async def cache_time_for_barchart(db: AsyncSession) -> int:
+    pass # TO DO: calculate cache time until the end of the month

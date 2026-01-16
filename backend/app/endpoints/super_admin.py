@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from ..utils import is_superuser_exists
-from ..security import settings
 from ..database import get_db
 from ..models import Users, Gyms
 from ..security import (
@@ -31,17 +30,13 @@ async def create_super_admin(
         raise HTTPException(
             detail="Superuser already exists", status_code=status.HTTP_400_BAD_REQUEST
         )
+    user_data = super_user.model_dump(exclude={"password"})
 
-    super_user = Users(
-        first_name=super_user.first_name,
-        last_name=super_user.last_name,
-        phone_number=super_user.phone_number,
-        role=super_user.role,
-        gender=super_user.gender,
-        date_of_birth=super_user.date_of_birth,
-        hashed_password=await hash_password(super_user.password),
-        is_superuser=True,
-    )
+    hashed_password = await hash_password(super_user.password)
+
+    user_data.update({"is_superuser": True, "hashed_password": hashed_password})
+
+    super_user = Users(**user_data)
 
     db.add(super_user)
     await db.commit()
@@ -68,19 +63,16 @@ async def create_gym_and_admin(
     db.add(new_gym)
     await db.flush()
 
+    user_data = gym_admin.user.model_dump(exclude={"password"})
+
     hashed_password = await hash_password(gym_admin.user.password)
 
-    new_admin = Users(
-        first_name=gym_admin.user.first_name,
-        last_name=gym_admin.user.last_name,
-        phone_number=gym_admin.user.phone_number,
-        hashed_password=hashed_password,
-        
-        date_of_birth=gym_admin.user.date_of_birth,
-        gender=gym_admin.user.gender,
-        gym_id=new_gym.id,
-        role="admin",
+    user_data.update(
+        {"gym_id": new_gym.id, "role": "admin", "hashed_password": hashed_password}
     )
+
+    new_admin = Users(**user_data)
+
     db.add(new_admin)
     await db.commit()
 
