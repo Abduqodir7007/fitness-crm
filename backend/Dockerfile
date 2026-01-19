@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/l
 
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
+RUN mkdir -p logs
+
 COPY . .
 
 COPY entrypoint.sh /entrypoint.sh

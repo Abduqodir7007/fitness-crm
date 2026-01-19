@@ -1,10 +1,16 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.endpoints import admin, auth, user, dashboard, super_admin
 from contextlib import asynccontextmanager
 
+from .logging_config import setup_logging
 from .database import Base, engine
 
+setup_logging()
+
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

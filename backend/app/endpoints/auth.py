@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from ..logging_config import setup_logging
 from ..rate_limiter import rate_limiter
 from ..dependancy import get_gym_id
 from ..utils import is_subscription_active, check_gym_active
@@ -27,10 +28,7 @@ from ..security import (
 
 router = APIRouter(prefix="/auth", tags=["Users"])
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
