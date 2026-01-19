@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,9 +6,9 @@ from sqlalchemy.future import select
 
 from ..rate_limiter import rate_limiter
 from ..dependancy import get_gym_id
-from ..utils import is_subscription_active, check_gym_active  
+from ..utils import is_subscription_active, check_gym_active
 from ..database import get_db
-from ..models import Users  
+from ..models import Users
 from ..schemas.users import (
     UpdateUserInformation,
     UpdateUserPassword,
@@ -26,6 +27,12 @@ from ..security import (
 
 router = APIRouter(prefix="/auth", tags=["Users"])
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
 
 @router.post(
     "/register",
@@ -35,30 +42,40 @@ router = APIRouter(prefix="/auth", tags=["Users"])
 async def register(
     user_in: UserCreate, gym_id=Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
-
+    logger.info(f"Registering user with phone number: {user_in.phone_number}")
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number)
     )
     user = result.scalars().first()
     if user:
+        logger.warning(
+            f"User registration failed. Phone number already exists: {user_in.phone_number}"
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this phone number already exists",
         )
 
-
     hashed_password = await hash_password(user_in.password)
+    
+    logger.info(f"Password hashed successfully for phone number")
+   
     user_data = user_in.model_dump(exclude={"password"})
 
     hashed_password = await hash_password(user_in.password)
 
     user_data.update({"hashed_password": hashed_password, "gym_id": gym_id})
 
+    logger.info(f"Creating new user with phone number: {user_in.phone_number}")
+
     new_user = Users(**user_data)
 
     db.add(new_user)
     await db.commit()
-
+    
+    logger.info(
+        f"User registered successfully with phone number: {user_in.phone_number}"
+    )
     return {"message": "User registered successfully"}
 
 
