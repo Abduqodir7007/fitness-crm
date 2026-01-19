@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import and_
 
 from ..logging_config import setup_logging
 from ..rate_limiter import rate_limiter
@@ -41,8 +42,12 @@ async def register(
     user_in: UserCreate, gym_id=Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
     logger.info(f"Registering user with phone number: {user_in.phone_number}")
+    logger.info(f"Checking if phone number already exists in the database with gym_id")
+
     result = await db.execute(
-        select(Users).where(Users.phone_number == user_in.phone_number)
+        select(Users).where(
+            and_(Users.phone_number == user_in.phone_number, Users.gym_id == gym_id)
+        )
     )
     user = result.scalars().first()
     if user:
@@ -55,9 +60,9 @@ async def register(
         )
 
     hashed_password = await hash_password(user_in.password)
-    
+
     logger.info(f"Password hashed successfully for phone number")
-   
+
     user_data = user_in.model_dump(exclude={"password"})
 
     hashed_password = await hash_password(user_in.password)
@@ -70,7 +75,7 @@ async def register(
 
     db.add(new_user)
     await db.commit()
-    
+
     logger.info(
         f"User registered successfully with phone number: {user_in.phone_number}"
     )

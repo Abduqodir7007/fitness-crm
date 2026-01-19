@@ -43,7 +43,14 @@ const AddUserModal = memo(function AddUserModal({ isOpen, onClose, onSubmit }) {
             });
             onClose();
         } catch (err) {
-            setError(err.message || "Xatolik yuz berdi");
+            if (
+                err.response?.data?.detail &&
+                err.response.data.detail.toLowerCase().includes("phone number")
+            ) {
+                setError("Bu telefon raqami bilan foydalanuvchi mavjud");
+            } else {
+                setError(err.message || "Xatolik yuz berdi");
+            }
         } finally {
             setLoading(false);
         }

@@ -139,6 +139,7 @@ class DailySubscriptions(Base):
     __tablename__ = "daily_subscriptions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
     subscription_date = Column(Date, default=date.today(), nullable=False)
     amount = Column(Integer, nullable=False)
 

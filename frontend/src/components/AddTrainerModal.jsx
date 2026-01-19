@@ -38,7 +38,19 @@ export default function AddTrainerModal({ isOpen, onClose, onSubmit }) {
             });
             onClose();
         } catch (err) {
-            setError(err.message || "Xatolik yuz berdi");
+            // Check for phone number conflict error from backend
+            const detail = err?.response?.data?.detail || err?.message || "";
+            if (
+                typeof detail === "string" &&
+                (detail.includes("phone number already exists") ||
+                    detail.includes("phone number already registered") ||
+                    detail.includes("phone number already in use") ||
+                    detail.includes("Bu telefon raqami bilan foydalanuvchi mavjud"))
+            ) {
+                setError("Bu telefon raqami bilan foydalanuvchi mavjud");
+            } else {
+                setError(detail || "Xatolik yuz berdi");
+            }
         } finally {
             setLoading(false);
         }

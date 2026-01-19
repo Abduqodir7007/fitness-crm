@@ -1,9 +1,12 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import timedelta, date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..logging_config import setup_logging
 from ..utils import is_subscription_active
 from ..dependancy import is_admin, get_gym_id
 from ..database import get_db
@@ -20,10 +23,10 @@ from ..schemas.admin import (
     SubscriptionResponse,
 )
 
+setup_logging()
+logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/admin", tags=["Admin"], dependencies=[Depends(is_admin)]
-)
+router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(is_admin)])
 
 
 @router.post(
@@ -191,18 +194,25 @@ async def daily_subscriptions_assign(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
+    logger.info(f"Assigning daily subscription")
+    logger.info(f"Checking if user already has an active subscription")
 
     is_active = await is_subscription_active(subscription.user_id, db)
+
     if is_active:
+        logger.warning(
+            f"User already has an active subscription, cannot assign daily subscription"
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already has an active subscription",
         )
-
+    logger.info(f"Creating daily subscription and payment records")
     daily_sub = DailySubscriptions(
         user_id=subscription.user_id,
         amount=subscription.amount,
         gym_id=gym_id,
+        subscription_date=date.today(),
     )
 
     payment = Payment(
@@ -215,4 +225,14 @@ async def daily_subscriptions_assign(
     db.add(daily_sub)
     db.add(payment)
     await db.commit()
+
+    logger.info(
+        "Daily subscription assigned successfully",
+        extra={
+            "user_id": subscription.user_id,
+            "gym_id": gym_id,
+            "date": str(daily_sub.subscription_date),
+        },
+    )
+
     return {"message": "Daily Subscription assigned successfully"}
