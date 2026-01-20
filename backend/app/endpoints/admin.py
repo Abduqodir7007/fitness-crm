@@ -25,6 +25,7 @@ from ..schemas.admin import (
 
 setup_logging()
 logger = logging.getLogger("admin_file")
+logger.propagate = True
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(is_admin)])
 

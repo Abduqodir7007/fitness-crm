@@ -1,8 +1,6 @@
 import logging
 from ..logging_config import setup_logging
 
-setup_logging()
-logger = logging.getLogger("dashboard")
 import json
 import io
 
@@ -33,6 +31,10 @@ from ..models import (
     Payment,
     DailySubscriptions,
 )
+
+setup_logging()
+logger = logging.getLogger("dashboard")
+logger.propagate = True
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 

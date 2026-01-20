@@ -31,6 +31,7 @@ router = APIRouter(prefix="/auth", tags=["Users"])
 
 setup_logging()
 logger = logging.getLogger("auth_file")
+logger.propagate = True
 
 
 @router.post(
@@ -93,7 +94,7 @@ async def login_user(
     db: AsyncSession = Depends(get_db),
 ):
     logger.info(f"Attempting login for phone number: {user_in.phone_number}")
-    
+
     result = await db.execute(
         select(Users).where(Users.phone_number == user_in.phone_number.strip())
     )
@@ -114,8 +115,8 @@ async def login_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Zal nofaol holatda. Iltimos, administrator bilan bog'laning.",
             )
-    
-    logger.info(f"Verifying password for phone number: {user_in.phone_number}")   
+
+    logger.info(f"Verifying password for phone number: {user_in.phone_number}")
     if user and await verify_password(user_in.password, user.hashed_password):
         token = await create_access_token(
             {"phone_number": user.phone_number, "role": user.role}
@@ -123,7 +124,9 @@ async def login_user(
         refresh_token = await create_refresh_token(
             {"phone_number": user.phone_number, "role": user.role}
         )
-        logger.info(f"User logged in successfully with phone number: {user_in.phone_number}")
+        logger.info(
+            f"User logged in successfully with phone number: {user_in.phone_number}"
+        )
         return {
             "is_superuser": user.is_superuser,
             "role": user.role,
@@ -142,7 +145,7 @@ async def login_user(
 @router.delete("/delete/{user_id}", status_code=status.HTTP_200_OK)
 async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
-    logger.info(f"Attempting to delete user with ID: {user_id}") 
+    logger.info(f"Attempting to delete user with ID: {user_id}")
     is_active = await is_subscription_active(user_id, db)
     if is_active:
         raise HTTPException(

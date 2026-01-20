@@ -23,6 +23,7 @@ from ..schemas.gyms import (
 
 setup_logging()
 logger = logging.getLogger("super_admin_file")
+logger.propagate = True
 
 router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
 
