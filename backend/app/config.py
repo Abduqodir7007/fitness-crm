@@ -10,7 +10,6 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int
 
     DATABASE_URL: str
-
     JWT_ALGORITHM: str
     JWT_SECRET_KEY: str
 

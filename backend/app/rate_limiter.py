@@ -22,9 +22,9 @@ class RateLimiter:
         pipeline.expire(client_ip, self.timeout)
         result = await pipeline.execute()
 
-        number_of_requst = result[0]
+        number_of_requests = result[0]
 
-        if number_of_requst > self.request_limit:
+        if number_of_requests > self.request_limit:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Too many requests. Try again later.",

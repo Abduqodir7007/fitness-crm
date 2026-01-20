@@ -1,3 +1,8 @@
+import logging
+from ..logging_config import setup_logging
+
+setup_logging()
+logger = logging.getLogger("dashboard")
 import json
 import io
 
@@ -38,6 +43,7 @@ async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
     gym_id: str = Depends(get_gym_id),
 ):
+    logger.info("Fetching dashboard user stats for gym_id=%s", gym_id)
     response = []
 
     result1 = await db.execute(
@@ -72,6 +78,7 @@ async def get_dashboard_stats(
             "today_attendance": today_attendance,
         }
     )
+    logger.info("User stats: %s", response)
     return response
 
 
@@ -80,6 +87,7 @@ async def get_subscription_stats(
     db: AsyncSession = Depends(get_db), gym_id: str = Depends(get_gym_id)
 ):
 
+    logger.info("Fetching subscription stats for gym_id=%s", gym_id)
     response = []
 
     result1 = await db.execute(
@@ -102,7 +110,11 @@ async def get_subscription_stats(
             {
                 "type": type,
                 "count": count,
-                "percentage": (100 * count) // total_active_subscriptions,
+                "percentage": (
+                    (100 * count) // total_active_subscriptions
+                    if total_active_subscriptions
+                    else 0
+                ),
             }
         )
 
@@ -111,6 +123,7 @@ async def get_subscription_stats(
             "total_active_subscriptions": total_active_subscriptions,
         }
     )
+    logger.info("Subscription stats: %s", response)
     return response
 
 
@@ -120,6 +133,7 @@ async def get_total_profit_for_day(
     db: AsyncSession = Depends(get_db), gym_id: str = Depends(get_gym_id)
 ):
 
+    logger.info("Fetching total profit and daily/weekly clients for gym_id=%s", gym_id)
     result2 = await db.execute(
         select(func.count(DailySubscriptions.id)).where(
             DailySubscriptions.subscription_date == date.today(),
@@ -134,9 +148,9 @@ async def get_total_profit_for_day(
     }
 
     weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
-    
+
     if weekly_clients:
-        print("Cache hit")
+        logger.info("Cache hit for weekly_clients")
         response["weekly_clients"] = json.loads(weekly_clients)
         return response
 
@@ -174,8 +188,9 @@ async def get_total_profit_for_day(
     await redis.set(
         settings.WEEKLY_CLIENTS,
         json.dumps(weekly_clients_list),
-        ex=ttl,  # cached until midnight 
+        ex=ttl,  # cached until midnight
     )
+    logger.info("Total profit and clients response")
     return response
 
 
@@ -191,6 +206,7 @@ async def get_monthly_payment_history(
     #     # print("Cache hit")
     #     return json.loads(response)
 
+    logger.info("Fetching monthly payment history for gym_id=%s", gym_id)
     today = date.today()
     start_date = today.replace(day=1) - relativedelta(months=5)
     end_date = today.replace(day=1) - relativedelta(days=1)
@@ -220,10 +236,7 @@ async def get_monthly_payment_history(
     response = [
         {"month": data["name"], "profit": data["profit"]} for _, data in sorted_months
     ]
-    # await redis.set(
-    #     settings.MONTHLY_PROFIT, json.dumps(response), ex=60 * 60 * 24 * 10
-    # )  # cached for 10 days
-
+    logger.info("Monthly payment history: %s", response)
     return response
 
 
@@ -231,6 +244,7 @@ async def get_monthly_payment_history(
 async def get_ended_subscriptions(
     gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
+    logger.info("Fetching ended subscriptions for gym_id=%s", gym_id)
     cutoff = [date.today() + timedelta(days=i) for i in range(1, 4)]
 
     result = await db.execute(
@@ -256,6 +270,7 @@ async def get_ended_subscriptions(
             }
         )
 
+    logger.info("Ended subscriptions: %s", response)
     return response
 
 
@@ -267,6 +282,7 @@ async def get_ended_subscriptions(
 async def get_payment_history(
     gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
+    logger.info("Fetching payment history for gym_id=%s", gym_id)
     result = await db.execute(
         select(Payment)
         .options(selectinload(Payment.user))
@@ -275,7 +291,7 @@ async def get_payment_history(
         .limit(5)
     )
     payments = result.scalars().all()
-
+    logger.info("Payment history fetched successfully for gym_id=%s", gym_id)
     return payments
 
 
@@ -283,6 +299,7 @@ async def get_payment_history(
 async def get_profit(
     gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
+    logger.info("Fetching profit stats for gym_id=%s", gym_id)
     today = date.today()
 
     daily_profit = await fetch_profit_from_db(today, today, db, gym_id)
@@ -291,17 +308,16 @@ async def get_profit(
         today - relativedelta(days=6), today, db, gym_id
     )
 
-    monthly_profit = await fetch_profit_from_db(
-        today.replace(day=1), today, db, gym_id
-    )
+    monthly_profit = await fetch_profit_from_db(today.replace(day=1), today, db, gym_id)
 
     response = {
         "daily_profit": daily_profit,
         "weekly_profit": weekly_profit,
         "monthly_profit": monthly_profit,
     }
-
+    logger.info("Profit stats: %s", response)
     return response
+
 
 # remove async if it blocks the thread
 @router.get("/download/stats", status_code=status.HTTP_200_OK)
@@ -309,6 +325,7 @@ async def download_stats(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
+    logger.info("Downloading dashboard stats for gym_id=%s", gym_id)
     wb = Workbook()
     ws = wb.active
     ws.title = "Dashboard Stats"
@@ -356,6 +373,7 @@ async def download_stats(
     wb.save(stream)
     stream.seek(0)
 
+    logger.info("Dashboard stats file generated for gym_id=%s", gym_id)
     return StreamingResponse(
         stream,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

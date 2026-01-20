@@ -24,7 +24,7 @@ from ..schemas.admin import (
 )
 
 setup_logging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("admin_file")
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(is_admin)])
 
@@ -38,6 +38,9 @@ async def create_subscription_plan(
     db: AsyncSession = Depends(get_db),
 ):
 
+    logger.info(
+        "Creating subscription plan: name=%s, gym_id=%s", subscription.name, gym_id
+    )
     new_plan = SubscriptionPlans(
         type=subscription.name,
         price=subscription.price,
@@ -47,6 +50,7 @@ async def create_subscription_plan(
     db.add(new_plan)
     await db.commit()
     await db.refresh(new_plan)
+    logger.info("Subscription plan created successfully: id=%s", new_plan.id)
     return new_plan
 
 
@@ -57,13 +61,14 @@ async def get_subscription_plans(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
+    logger.info("Fetching subscription plans for gym_id=%s", gym_id)
     result = await db.execute(
         select(SubscriptionPlans).where(
             SubscriptionPlans.is_active == True, SubscriptionPlans.gym_id == gym_id
         )
     )
     plans = result.scalars().all()
-
+    logger.info("Fetched %d subscription plans for gym_id=%s", len(plans), gym_id)
     return plans
 
 
@@ -96,6 +101,7 @@ async def update_subscription_plan(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
+    logger.info("Updating subscription plan: plan_id=%s, gym_id=%s", plan_id, gym_id)
     result = await db.execute(
         select(SubscriptionPlans).where(
             SubscriptionPlans.id == plan_id, SubscriptionPlans.gym_id == gym_id
@@ -103,6 +109,11 @@ async def update_subscription_plan(
     )
     plan = result.scalars().first()
     if not plan:
+        logger.warning(
+            "Update failed: subscription plan not found (plan_id=%s, gym_id=%s)",
+            plan_id,
+            gym_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found",
@@ -114,6 +125,7 @@ async def update_subscription_plan(
 
     db.add(plan)
     await db.commit()
+    logger.info("Subscription plan updated successfully: plan_id=%s", plan_id)
     return {"message": "Subscription plan updated successfully"}
 
 
@@ -123,6 +135,7 @@ async def update_subscription_plan(
 async def delete_subscription_plan(
     plan_id: str, gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
+    logger.info("Deleting subscription plan: plan_id=%s, gym_id=%s", plan_id, gym_id)
     result = await db.execute(
         select(SubscriptionPlans).where(
             SubscriptionPlans.id == plan_id, SubscriptionPlans.gym_id == gym_id
@@ -130,12 +143,18 @@ async def delete_subscription_plan(
     )
     plan = result.scalars().first()
     if not plan:
+        logger.warning(
+            "Delete failed: subscription plan not found (plan_id=%s, gym_id=%s)",
+            plan_id,
+            gym_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found",
         )
     await db.delete(plan)
     await db.commit()
+    logger.info("Subscription plan deleted successfully: plan_id=%s", plan_id)
     return {"message": "Subscription plan deleted successfully"}
 
 
@@ -148,8 +167,17 @@ async def subscriptions_assign(
     db: AsyncSession = Depends(get_db),
 ):
 
+    logger.info(
+        "Assigning subscription: user_id=%s, plan_id=%s, gym_id=%s",
+        subscription.user_id,
+        subscription.plan_id,
+        gym_id,
+    )
     is_active = await is_subscription_active(subscription.user_id, db)
     if is_active:
+        logger.warning(
+            "User already has an active subscription: user_id=%s", subscription.user_id
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already has an active subscription",
@@ -170,6 +198,7 @@ async def subscriptions_assign(
     plan = result.scalars().first()
 
     if not plan:
+        logger.warning("Subscription plan not found: plan_id=%s", subscription.plan_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found",
@@ -185,6 +214,11 @@ async def subscriptions_assign(
     db.add(new_subscription)
     db.add(payment)
     await db.commit()
+    logger.info(
+        "Subscription assigned successfully: user_id=%s, plan_id=%s",
+        subscription.user_id,
+        subscription.plan_id,
+    )
     return {"message": "Subscription assigned successfully"}
 
 
@@ -227,12 +261,10 @@ async def daily_subscriptions_assign(
     await db.commit()
 
     logger.info(
-        "Daily subscription assigned successfully",
-        extra={
-            "user_id": subscription.user_id,
-            "gym_id": gym_id,
-            "date": str(daily_sub.subscription_date),
-        },
+        "Daily subscription assigned successfully | user_id=%s gym_id=%s date=%s",
+        subscription.user_id,
+        gym_id,
+        daily_sub.subscription_date,
     )
 
     return {"message": "Daily Subscription assigned successfully"}
