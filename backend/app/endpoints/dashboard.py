@@ -149,11 +149,11 @@ async def get_total_profit_for_day(
         "daily_clients": daily_visits or 0,
     }
 
-    weekly_clients = await redis.get(gym_id)
+    weekly_clients = await redis.get(str(gym_id))
 
     if weekly_clients:
         logger.info("Cache hit for weekly_clients")
-        response[gym_id] = json.loads(weekly_clients)
+        response[str(gym_id)] = json.loads(weekly_clients)
         return response
 
     start_date = date.today() - timedelta(days=7)
@@ -188,7 +188,7 @@ async def get_total_profit_for_day(
     ttl = await cache_time_for_linegraph(db)
 
     await redis.set(
-        gym_id,
+        str(gym_id),
         json.dumps(weekly_clients_list),
         ex=ttl,  # cached until midnight
     )
