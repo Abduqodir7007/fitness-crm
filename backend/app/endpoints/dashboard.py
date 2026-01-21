@@ -313,15 +313,14 @@ async def get_profit(
     monthly_profit = await fetch_profit_from_db(today.replace(day=1), today, db, gym_id)
 
     response = {
-        "daily_profit": daily_profit,
-        "weekly_profit": weekly_profit,
-        "monthly_profit": monthly_profit,
+        "daily_profit": daily_profit or 0,
+        "weekly_profit": weekly_profit or 0,
+        "monthly_profit": monthly_profit or 0,
     }
     logger.info("Profit stats: %s", response)
     return response
 
 
-# remove async if it blocks the thread
 @router.get("/download/stats", status_code=status.HTTP_200_OK)
 async def download_stats(
     gym_id: str = Depends(get_gym_id),
