@@ -53,7 +53,7 @@ async def is_superuser_exists(db: AsyncSession) -> bool:
     superuser = result.scalars().first()
     return True if superuser else False
 
-async def cache_time_for_line(db: AsyncSession) -> int:
+async def cache_time_for_linegraph(db: AsyncSession) -> int:
 
     now = datetime.now()
 

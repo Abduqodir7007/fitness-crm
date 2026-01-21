@@ -17,7 +17,7 @@ from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
-from ..utils import fetch_profit_from_db, cache_time_for_line
+from ..utils import fetch_profit_from_db, cache_time_for_linegraph
 from ..dependancy import get_gym_id
 from ..config import settings
 from ..database import get_db
@@ -149,11 +149,11 @@ async def get_total_profit_for_day(
         "daily_clients": daily_visits or 0,
     }
 
-    weekly_clients = await redis.get(settings.WEEKLY_CLIENTS)
+    weekly_clients = await redis.get(gym_id)
 
     if weekly_clients:
         logger.info("Cache hit for weekly_clients")
-        response["weekly_clients"] = json.loads(weekly_clients)
+        response[gym_id] = json.loads(weekly_clients)
         return response
 
     start_date = date.today() - timedelta(days=7)
@@ -185,10 +185,10 @@ async def get_total_profit_for_day(
 
     response["weekly_clients"] = weekly_clients_list
 
-    ttl = await cache_time_for_line(db)
+    ttl = await cache_time_for_linegraph(db)
 
     await redis.set(
-        settings.WEEKLY_CLIENTS,
+        gym_id,
         json.dumps(weekly_clients_list),
         ex=ttl,  # cached until midnight
     )
