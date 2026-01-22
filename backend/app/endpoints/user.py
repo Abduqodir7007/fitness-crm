@@ -1,9 +1,10 @@
 import json
+import logging
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-
+from ..logging_config import setup_logging
 from ..schemas.users import UserListResponse
 from ..schemas.admin import AttendanceResponse
 from ..models import Users, Subscriptions, Attendance
@@ -23,6 +24,10 @@ from fastapi import (
     Depends,
 )
 
+
+setup_logging()
+logger = logging.getLogger("user_file")
+
 router = APIRouter(prefix="/users", tags=["User Management"])
 
 
@@ -33,25 +38,22 @@ async def get_all_users(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
-
+    logger.info("Fetching all users for gym_id=%s", gym_id)
     query = select(Users).where(
         and_(
             Users.is_superuser == False, Users.role == "client", Users.gym_id == gym_id
         )
     )
-
     if active_sub:
         query = query.join(Users.subscriptions).where(
             Subscriptions.is_active == active_sub
         )
-
     if q:
         query = query.where(
             (Users.first_name.ilike(f"%{q}%"))
             | (Users.last_name.ilike(f"%{q}%"))
             | (Users.phone_number.ilike(f"%{q}%"))
         )
-
     users = (await db.execute(query)).scalars().all()
     return users
 
@@ -73,6 +75,7 @@ async def get_current_user_info(
     user_data = result.scalars().first()
 
     if not user_data:
+        logger.warning("User not found: id=%s", user.id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
@@ -139,6 +142,7 @@ async def get_current_user_info(
 async def get_trainers(
     gym_id: str = Depends(get_gym_id), db: AsyncSession = Depends(get_db)
 ):
+    logger.info("Fetching trainers for gym_id=%s", gym_id)
     result = await db.execute(
         select(Users).where(
             and_(
@@ -162,6 +166,7 @@ async def get_trainer_by_id(
     trainer = result.scalars().first()
 
     if not trainer:
+        logger.warning("Trainer not found: id=%s", trainer_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Trainer not found",
@@ -195,6 +200,7 @@ async def get_user(
     user = result.scalars().first()
 
     if not user:
+        logger.warning("User not found: id=%s", user_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
@@ -245,7 +251,7 @@ async def get_trainer_clients(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
-    print(gym_id)
+    logger.info("Fetching clients for trainer_id=%s, gym_id=%s", trainer_id, gym_id)
     result = await db.execute(
         select(Subscriptions)
         .options(selectinload(Subscriptions.user), selectinload(Subscriptions.plan))
@@ -288,6 +294,9 @@ async def create_attendance(
     attendance = result.scalars().first()
 
     if attendance:
+        logger.warning(
+            "Attendance already marked: user_id=%s, gym_id=%s", current_user.id, gym_id
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You already in an attendance",
@@ -321,6 +330,7 @@ async def get_attendance(
 async def websocket_trainers_endpoint(
     websocket: WebSocket, db: AsyncSession = Depends(get_db)
 ):
+    logger.info("WebSocket /ws/trainers connect")
     await manager.connect(websocket)
 
     try:
@@ -345,11 +355,13 @@ async def websocket_trainers_endpoint(
 
                 await websocket.send_json({"type": "trainers", "data": trainers_data})
     except WebSocketDisconnect:
+        logger.info("WebSocket /ws/trainers disconnect")
         await manager.disconnect(websocket)
 
 
 @router.websocket("/ws/")
 async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
+    logger.info("WebSocket /ws/ connect")
     await manager.connect(websocket)
     try:
         while True:
@@ -372,4 +384,5 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
                 await manager.broadcast({"type": "users", "data": users_data})
     except WebSocketDisconnect:
+        logger.info("WebSocket /ws/ disconnect")
         await manager.disconnect(websocket)
