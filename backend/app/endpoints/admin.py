@@ -184,15 +184,6 @@ async def subscriptions_assign(
             detail="User already has an active subscription",
         )
 
-    new_subscription = Subscriptions(
-        user_id=subscription.user_id,
-        plan_id=subscription.plan_id,
-        payment_method=subscription.payment_method,
-        trainer_id=subscription.trainer_id,
-        gym_id=gym_id,
-        start_date=date.today(),
-        end_date=date.today() + timedelta(days=30),
-    )
     result = await db.execute(
         select(SubscriptionPlans).where(SubscriptionPlans.id == subscription.plan_id)
     )
@@ -204,6 +195,16 @@ async def subscriptions_assign(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found",
         )
+   
+    new_subscription = Subscriptions(
+        user_id=subscription.user_id,
+        plan_id=subscription.plan_id,
+        payment_method=subscription.payment_method,
+        trainer_id=subscription.trainer_id,
+        gym_id=gym_id,
+        start_date=date.today(),
+        end_date=date.today() + timedelta(days=30),
+    )
 
     payment = Payment(
         user_id=subscription.user_id,
