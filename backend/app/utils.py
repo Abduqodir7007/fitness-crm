@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 from .models import Subscriptions, Payment, Gyms, Users, DailySubscriptions
 
 
-async def is_subscription_active(user_id: str, db: AsyncSession) -> bool:
+async def get_active_subscription(user_id: str, db: AsyncSession) -> bool:
     result = await db.execute(
         select(Subscriptions).where(
             and_(

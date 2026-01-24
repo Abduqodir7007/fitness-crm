@@ -4,7 +4,7 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from ..utils import is_subscription_active
+from ..utils import get_active_subscription
 from ..logging_config import setup_logging
 from ..schemas.users import UserListResponse
 from ..schemas.admin import AttendanceResponse
@@ -283,7 +283,7 @@ async def create_attendance(
     gym_id: str = Depends(get_gym_id),
     db: AsyncSession = Depends(get_db),
 ):
-    is_active = await is_subscription_active(current_user.id, db)
+    is_active = await get_active_subscription(current_user.id, db)
 
     if not is_active:
         logger.warning(

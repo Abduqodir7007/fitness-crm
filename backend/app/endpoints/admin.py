@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..logging_config import setup_logging
-from ..utils import is_subscription_active
+from ..utils import get_active_subscription 
 from ..dependancy import is_admin, get_gym_id
 from ..database import get_db
 from ..models import (
@@ -161,7 +161,7 @@ async def delete_subscription_plan(
 
 @router.post(
     "/subscription/assign", status_code=status.HTTP_200_OK
-)  # change in frontend
+)  
 async def subscriptions_assign(
     subscription: SubscriptionCreate,
     gym_id: str = Depends(get_gym_id),
@@ -174,7 +174,7 @@ async def subscriptions_assign(
         subscription.plan_id,
         gym_id,
     )
-    is_active = await is_subscription_active(subscription.user_id, db)
+    is_active = await get_active_subscription(subscription.user_id, db)
     if is_active:
         logger.warning(
             "User already has an active subscription: user_id=%s", subscription.user_id
@@ -233,7 +233,7 @@ async def daily_subscriptions_assign(
     logger.info(f"Assigning daily subscription")
     logger.info(f"Checking if user already has an active subscription")
 
-    is_active = await is_subscription_active(subscription.user_id, db)
+    is_active = await get_active_subscription(subscription.user_id, db)
 
     if is_active:
         logger.warning(

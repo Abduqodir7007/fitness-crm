@@ -1,5 +1,4 @@
 import logging
-from ..logging_config import setup_logging
 
 import json
 import io
@@ -17,9 +16,9 @@ from sqlalchemy import and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
+from ..logging_config import setup_logging
 from ..utils import fetch_profit_from_db, cache_time_for_linegraph
 from ..dependancy import get_gym_id
-from ..config import settings
 from ..database import get_db
 from ..schemas.admin import PaymentResponse
 from ..rate_limiter import redis

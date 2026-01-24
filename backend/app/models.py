@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer, Time
+from sqlalchemy import Column, String, Boolean, Date, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime, date
@@ -33,7 +33,7 @@ class Users(Base):
     gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
     gym = relationship("Gyms", back_populates="users")
 
-    created_at = Column(Date, default=datetime.utcnow())
+    created_at = Column(Date, default=datetime.utcnow)
     date_of_birth = Column(Date, nullable=False)
 
     is_active = Column(Boolean, default=True)
