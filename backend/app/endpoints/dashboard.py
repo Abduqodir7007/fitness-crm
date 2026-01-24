@@ -152,8 +152,8 @@ async def get_total_profit_for_day(
     weekly_clients = await redis.get(str(gym_id))
 
     if weekly_clients:
-        logger.info("Cache hit for weekly_clients")
-        response[str(gym_id)] = json.loads(weekly_clients)
+        logger.info("Cache hit for weekly_clients: %s", weekly_clients)
+        response["weekly_clients"] = json.loads(weekly_clients)
         return response
 
     start_date = date.today() - timedelta(days=7)

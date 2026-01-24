@@ -3,8 +3,7 @@ from sqlalchemy import select, and_, func
 from fastapi import HTTPException, status
 from datetime import date, datetime, timedelta
 
-from .models import Subscriptions, Payment, Gyms, Users
-
+from .models import Subscriptions, Payment, Gyms, Users, DailySubscriptions
 
 
 async def is_subscription_active(user_id: str, db: AsyncSession) -> bool:
@@ -17,7 +16,20 @@ async def is_subscription_active(user_id: str, db: AsyncSession) -> bool:
         )
     )
     subscription = result.scalars().first()
-    return subscription is not None
+
+    result = await db.execute(
+        select(DailySubscriptions).where(
+            and_(
+                DailySubscriptions.user_id == user_id,
+                DailySubscriptions.subscription_date == date.today(),
+            )
+        )
+    )
+    daily_sub = result.scalars().first()
+    if subscription or daily_sub:
+        return True
+
+    return False
 
 
 async def fetch_profit_from_db(start_date, end_date, db: AsyncSession, gym_id: str):
@@ -53,6 +65,7 @@ async def is_superuser_exists(db: AsyncSession) -> bool:
     superuser = result.scalars().first()
     return True if superuser else False
 
+
 async def cache_time_for_linegraph(db: AsyncSession) -> int:
 
     now = datetime.now()
@@ -66,4 +79,4 @@ async def cache_time_for_linegraph(db: AsyncSession) -> int:
 
 
 async def cache_time_for_barchart(db: AsyncSession) -> int:
-    pass # TO DO: calculate cache time until the end of the month
+    pass  # TO DO: calculate cache time until the end of the month
