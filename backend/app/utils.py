@@ -47,7 +47,7 @@ async def fetch_profit_from_db(start_date, end_date, db: AsyncSession, gym_id: s
     return profit
 
 
-async def check_gym_active(gym_id: str, db: AsyncSession) -> bool:
+async def check_gym_status(gym_id: str, db: AsyncSession) -> bool:
     result = await db.execute(select(Gyms).where(Gyms.id == gym_id))
 
     gym = result.scalars().first()

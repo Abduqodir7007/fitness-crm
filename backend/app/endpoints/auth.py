@@ -8,7 +8,7 @@ from sqlalchemy import and_
 from ..logging_config import setup_logging
 from ..rate_limiter import rate_limiter
 from ..dependancy import get_gym_id
-from ..utils import is_subscription_active, check_gym_active
+from ..utils import check_gym_status, get_active_subscription
 from ..database import get_db
 from ..models import Users
 from ..schemas.users import (
@@ -109,7 +109,7 @@ async def login_user(
         )
     logger.info(f"Checking the user role: {user.role}")
     if user.role != "super-admin" and user.gym_id:
-        is_gym_active = await check_gym_active(user.gym_id, db)
+        is_gym_active = await check_gym_status(user.gym_id, db)
         if not is_gym_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -146,7 +146,7 @@ async def login_user(
 async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
     logger.info(f"Attempting to delete user with ID: {user_id}")
-    is_active = await is_subscription_active(user_id, db)
+    is_active = await get_active_subscription(user_id, db)
     if is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
