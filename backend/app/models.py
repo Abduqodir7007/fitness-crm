@@ -80,8 +80,8 @@ class Subscriptions(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     payment_method = Column(String(50), nullable=False)
-    end_date = Column(Date, nullable=False)
     start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
     is_active = Column(Boolean, default=True)
 
     trainer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)

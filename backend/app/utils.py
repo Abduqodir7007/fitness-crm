@@ -12,6 +12,7 @@ async def get_active_subscription(user_id: str, db: AsyncSession) -> bool:
             and_(
                 Subscriptions.user_id == user_id,
                 Subscriptions.is_active == True,
+                Subscriptions.end_date >= date.today(),
             )
         )
     )

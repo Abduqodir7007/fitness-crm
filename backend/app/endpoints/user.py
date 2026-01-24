@@ -342,7 +342,7 @@ async def get_attendance(
 async def websocket_trainers_endpoint(
     websocket: WebSocket, db: AsyncSession = Depends(get_db)
 ):
-    logger.info("WebSocket /ws/trainers connect")
+   
     await manager.connect(websocket)
 
     try:
@@ -367,13 +367,11 @@ async def websocket_trainers_endpoint(
 
                 await websocket.send_json({"type": "trainers", "data": trainers_data})
     except WebSocketDisconnect:
-        logger.info("WebSocket /ws/trainers disconnect")
         await manager.disconnect(websocket)
 
 
 @router.websocket("/ws/")
 async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
-    logger.info("WebSocket /ws/ connect")
     await manager.connect(websocket)
     try:
         while True:
@@ -396,5 +394,4 @@ async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(ge
 
                 await manager.broadcast({"type": "users", "data": users_data})
     except WebSocketDisconnect:
-        logger.info("WebSocket /ws/ disconnect")
         await manager.disconnect(websocket)

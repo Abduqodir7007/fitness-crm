@@ -40,7 +40,7 @@ async def get_current_user(
     return user
 
 
-async def is_admin(user: Users = Depends(get_current_user)):
+async def is_admin(user: Users = Depends(get_current_user)) -> bool:
     if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -51,5 +51,3 @@ async def is_admin(user: Users = Depends(get_current_user)):
 
 async def get_gym_id(user: Users = Depends(get_current_user)) -> UUID:
     return user.gym_id
-
-

@@ -93,7 +93,11 @@ async def get_subscription_stats(
 
     result1 = await db.execute(
         select(func.count(Subscriptions.id)).where(
-            and_(Subscriptions.is_active == True, Subscriptions.gym_id == gym_id)
+            and_(
+                Subscriptions.is_active == True,
+                Subscriptions.gym_id == gym_id,
+                Subscriptions.end_date >= date.today(),
+            )
         )
     )
     total_active_subscriptions = result1.scalar()
@@ -101,7 +105,11 @@ async def get_subscription_stats(
     result = await db.execute(
         select(SubscriptionPlans.type, func.count(Subscriptions.id))
         .outerjoin(Subscriptions, Subscriptions.plan_id == SubscriptionPlans.id)
-        .where(Subscriptions.is_active == True, Subscriptions.gym_id == gym_id)
+        .where(
+            Subscriptions.is_active == True,
+            Subscriptions.gym_id == gym_id,
+            Subscriptions.end_date >= date.today(),
+        )
         .group_by(SubscriptionPlans.type)
     )
 
