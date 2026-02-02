@@ -229,6 +229,8 @@ async def get_monthly_payment_history(
     )
 
     payments = result.scalars().all()
+    for payment in payments:
+        print(payment.amount, payment.payment_date)
 
     monthly_profit = {}
     for payment in payments:

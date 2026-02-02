@@ -2,7 +2,9 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.endpoints import admin, auth, user, dashboard, super_admin
+from fastapi.staticfiles import StaticFiles
+import os
+from app.endpoints import admin, auth, user, dashboard, super_admin, market
 from contextlib import asynccontextmanager
 
 from .logging_config import setup_logging
@@ -12,16 +14,24 @@ setup_logging()
 
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        
+
     yield
 
 
-
 app = FastAPI(lifespan=lifespan)
+
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_DIR, "products"), exist_ok=True)
+
+# Mount static files for serving uploaded images
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 origins = [
     "http://localhost:5173",
@@ -43,6 +53,8 @@ app.include_router(user.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(super_admin.router, prefix="/api")
+app.include_router(market.router, prefix="/api")
+
 
 @app.get("/")
 async def home():

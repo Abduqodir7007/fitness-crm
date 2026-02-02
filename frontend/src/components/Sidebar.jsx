@@ -23,6 +23,7 @@ const Sidebar = memo(function Sidebar({
         { id: "attendance", label: "Davomat", icon: "📝" },
         { id: "pricing", label: "Tariflar", icon: "📋" },
         { id: "trainers", label: "Trenerlar", icon: "💪" },
+        { id: "market", label: "Market", icon: "🛒" },
         { id: "reports", label: "To'lovlar", icon: "📊" },
     ];
 

@@ -16,6 +16,7 @@ class Gyms(Base):
     address = Column(String(200), nullable=True)
     is_active = Column(Boolean, default=True)
 
+    marketplace_enabled = Column(Boolean, default=True)
     users = relationship("Users", back_populates="gym", foreign_keys="Users.gym_id")
 
 
@@ -139,7 +140,7 @@ class DailySubscriptions(Base):
     __tablename__ = "daily_subscriptions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    
+
     subscription_date = Column(Date, default=date.today(), nullable=False)
     amount = Column(Integer, nullable=False)
 
@@ -150,3 +151,45 @@ class DailySubscriptions(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     user = relationship("Users", back_populates="daily_subscriptions")
+
+
+class Products(Base):
+    __tablename__ = "products"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(100), nullable=False)
+    image_path = Column(String(255), nullable=True)
+    selling_price = Column(Integer, nullable=False)
+    purchase_price = Column(Integer, nullable=False)
+    total_amount = Column(Integer, nullable=False)
+    current_amount = Column(Integer, nullable=False)
+    supplier_name = Column(String(100), nullable=True)
+
+    created_at = Column(Date, default=date.today(), nullable=False)
+
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym = relationship("Gyms")
+
+    sales = relationship(
+        "ProductSales", back_populates="product", cascade="all, delete-orphan"
+    )
+
+
+class ProductSales(Base):
+    __tablename__ = "product_sales"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    quantity = Column(Integer, nullable=False)
+    total_price = Column(Integer, nullable=False)
+    sale_date = Column(Date, default=date.today(), nullable=False)
+    payment_method = Column(String(50), nullable=False)
+
+    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym = relationship("Gyms")
+
+    product_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    product = relationship("Products", back_populates="sales")

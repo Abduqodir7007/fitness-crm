@@ -62,6 +62,18 @@ export default function GymsContent() {
         }
     };
 
+    const handleToggleMarketplace = async (gymId) => {
+        try {
+            await gymsAPI.toggleMarketplace(gymId);
+            await fetchGyms();
+        } catch (err) {
+            const errorMessage = err.response?.data?.detail || "Marketplace holatini o'zgartirishda xato";
+            setError(errorMessage);
+            console.error("Error toggling marketplace:", err);
+            throw err;
+        }
+    };
+
     const handleGymClick = (gym) => {
         setSelectedGym(gym);
         setIsViewModalOpen(true);
@@ -329,6 +341,7 @@ export default function GymsContent() {
                 }}
                 gym={selectedGym}
                 onToggleStatus={handleToggleGymStatus}
+                onToggleMarketplace={handleToggleMarketplace}
             />
         </div>
     );

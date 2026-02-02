@@ -31,6 +31,16 @@ export const gymsAPI = {
         }
     },
 
+    toggleMarketplace: async (gymId) => {
+        try {
+            const response = await client.patch(`/superadmin/gym/${gymId}/marketplace`);
+            return response.data;
+        } catch (error) {
+            console.error("Toggle marketplace error:", error);
+            throw error;
+        }
+    },
+
     delete: async (gymId) => {
         try {
             const response = await client.delete(`/superadmin/gyms/${gymId}`);

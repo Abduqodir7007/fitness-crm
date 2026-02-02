@@ -16,10 +16,7 @@ from ..security import (
 from ..schemas.users import (
     CreateSuperUser,
 )
-from ..schemas.gyms import (
-    GymAndAdminCreate,
-    GymResponse,
-)
+from ..schemas.gyms import GymAndAdminCreate, GymResponse, GymUpdate
 
 setup_logging()
 logger = logging.getLogger("super_admin_file")
@@ -35,7 +32,7 @@ async def create_super_admin(
 
     logger.info(
         "Attempting to create super admin user: %s",
-        super_user.username,
+        super_user.first_name,
     )
     if await is_superuser_exists(db):
         logger.warning("Superuser creation failed: superuser already exists")
@@ -53,7 +50,7 @@ async def create_super_admin(
     db.add(super_user_obj)
     await db.commit()
 
-    logger.info("Super admin created successfully: %s", super_user.username)
+    logger.info("Super admin created successfully: %s", super_user.first_name)
     return {"message": "Super admin created successfully"}
 
 
@@ -190,3 +187,28 @@ async def get_admin_users(db: AsyncSession = Depends(get_db)):
     number_of_admins = result.scalars().first()
     logger.info("Number of active admin users: %s", number_of_admins)
     return {"number_of_admins": number_of_admins}
+
+
+# Martketplace
+
+
+@router.patch("/gym/{gym_id}/marketplace", status_code=status.HTTP_200_OK)
+async def toggle_marketplace_status(gym_id: str, db: AsyncSession = Depends(get_db)):
+    """Toggle marketplace enabled/disabled for a gym"""
+    logger.info("Toggling marketplace status for gym_id=%s", gym_id)
+    result = await db.execute(select(Gyms).where(Gyms.id == gym_id))
+    gym = result.scalars().first()
+
+    if not gym:
+        logger.warning("Toggle failed: gym not found (id=%s)", gym_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Zal topilmadi"
+        )
+
+    gym.marketplace_enabled = not gym.marketplace_enabled
+    await db.commit()
+
+    logger.info("Marketplace for gym_id=%s", gym_id)
+    return {
+        "marketplace_enabled": gym.marketplace_enabled,
+    }

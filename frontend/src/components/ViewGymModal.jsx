@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-export default function ViewGymModal({ isOpen, onClose, gym, onToggleStatus }) {
+export default function ViewGymModal({ isOpen, onClose, gym, onToggleStatus, onToggleMarketplace }) {
     const [loading, setLoading] = useState(false);
+    const [marketplaceLoading, setMarketplaceLoading] = useState(false);
 
     if (!isOpen || !gym) return null;
 
@@ -22,6 +23,26 @@ export default function ViewGymModal({ isOpen, onClose, gym, onToggleStatus }) {
             console.error("Error toggling gym status:", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleToggleMarketplace = async () => {
+        const confirmMessage = gym.marketplace_enabled
+            ? "Haqiqatan ham bu zal uchun marketplace ni o'chirmoqchimisiz?"
+            : "Haqiqatan ham bu zal uchun marketplace ni yoqmoqchimisiz?";
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        setMarketplaceLoading(true);
+        try {
+            await onToggleMarketplace(gym.id);
+            onClose();
+        } catch (err) {
+            console.error("Error toggling marketplace:", err);
+        } finally {
+            setMarketplaceLoading(false);
         }
     };
 
@@ -56,16 +77,29 @@ export default function ViewGymModal({ isOpen, onClose, gym, onToggleStatus }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Holat:</span>
-                            <span
-                                className={`px-3 py-1 text-sm font-medium rounded-full ${gym.is_active
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                    }`}
-                            >
-                                {gym.is_active ? "Faol" : "Nofaol"}
-                            </span>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Holat:</span>
+                                <span
+                                    className={`px-3 py-1 text-sm font-medium rounded-full ${gym.is_active
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-red-100 text-red-800"
+                                        }`}
+                                >
+                                    {gym.is_active ? "Faol" : "Nofaol"}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Marketplace:</span>
+                                <span
+                                    className={`px-3 py-1 text-sm font-medium rounded-full ${gym.marketplace_enabled
+                                        ? "bg-blue-100 text-blue-800"
+                                        : "bg-gray-100 text-gray-800"
+                                        }`}
+                                >
+                                    {gym.marketplace_enabled ? "Yoqilgan" : "O'chirilgan"}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -130,6 +164,45 @@ export default function ViewGymModal({ isOpen, onClose, gym, onToggleStatus }) {
                             </div>
                         )}
                     </div>
+
+                    {/* Marketplace Toggle */}
+                    <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <span className="text-xl">🛒</span>
+                            Marketplace sozlamalari
+                        </h4>
+
+                        <div className="bg-purple-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium text-gray-900">Marketplace</p>
+                                    <p className="text-sm text-gray-600">
+                                        {gym.marketplace_enabled
+                                            ? "Zal admini mahsulotlarni boshqara oladi"
+                                            : "Marketplace o'chirilgan"}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleToggleMarketplace}
+                                    disabled={marketplaceLoading}
+                                    className={`px-4 py-2 text-white rounded-lg font-medium transition disabled:opacity-50 flex items-center gap-2 ${gym.marketplace_enabled
+                                        ? "bg-gray-500 hover:bg-gray-600"
+                                        : "bg-blue-500 hover:bg-blue-600"
+                                        }`}
+                                >
+                                    {marketplaceLoading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                        </>
+                                    ) : gym.marketplace_enabled ? (
+                                        "O'chirish"
+                                    ) : (
+                                        "Yoqish"
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Footer */}
@@ -144,8 +217,8 @@ export default function ViewGymModal({ isOpen, onClose, gym, onToggleStatus }) {
                         onClick={handleToggleStatus}
                         disabled={loading}
                         className={`flex-1 px-4 py-2 text-white rounded-lg font-medium transition disabled:opacity-50 flex items-center justify-center gap-2 ${gym.is_active
-                                ? "bg-orange-500 hover:bg-orange-600"
-                                : "bg-green-500 hover:bg-green-600"
+                            ? "bg-orange-500 hover:bg-orange-600"
+                            : "bg-green-500 hover:bg-green-600"
                             }`}
                     >
                         {loading ? (

@@ -34,11 +34,19 @@ class GymResponse(BaseModel):
     name: str
     address: str | None = None
     is_active: bool
+    marketplace_enabled: bool = True
     admin: AdminResponse | None = None
 
     @field_serializer("id")
     def serialize_id(self, id: UUID) -> str:
         return str(id)
+
+    class Config:
+        from_attributes = True
+
+
+class GymUpdate(BaseModel):
+    is_active: bool
 
     class Config:
         from_attributes = True
