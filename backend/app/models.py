@@ -31,7 +31,9 @@ class Users(Base):
     gender = Column(String(10), nullable=True, default="male")
     hashed_password = Column(String, nullable=False)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms", back_populates="users")
 
     created_at = Column(Date, default=datetime.utcnow)
@@ -67,7 +69,9 @@ class SubscriptionPlans(Base):
 
     is_active = Column(Boolean, default=True)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     subscriptions = relationship(
@@ -88,7 +92,9 @@ class Subscriptions(Base):
     trainer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     trainer = relationship("Users", foreign_keys=[trainer_id])
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     user_id = Column(
@@ -111,7 +117,9 @@ class Attendance(Base):
 
     date = Column(Date, default=date.today(), nullable=False)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -126,7 +134,9 @@ class Payment(Base):
     payment_date = Column(Date, default=date.today(), nullable=False)
     payment_method = Column(String(50), nullable=False)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     user_id = Column(
@@ -144,7 +154,9 @@ class DailySubscriptions(Base):
     subscription_date = Column(Date, default=date.today(), nullable=False)
     amount = Column(Integer, nullable=False)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     user_id = Column(
@@ -167,7 +179,9 @@ class Products(Base):
 
     created_at = Column(Date, default=date.today(), nullable=False)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+        UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     sales = relationship(
@@ -184,7 +198,9 @@ class ProductSales(Base):
     sale_date = Column(Date, default=date.today(), nullable=False)
     payment_method = Column(String(50), nullable=False)
 
-    gym_id = Column(UUID(as_uuid=True), ForeignKey("gyms.id"), nullable=True)
+    gym_id = Column(
+UUID(as_uuid=True), ForeignKey("gyms.id", ondelete="CASCADE"), nullable=True
+    )
     gym = relationship("Gyms")
 
     product_id = Column(
