@@ -10,3 +10,4 @@ echo "PostgreSQL started!"
 
 exec "$@"
 
+
